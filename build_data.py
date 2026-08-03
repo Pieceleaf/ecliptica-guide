@@ -57,7 +57,7 @@ DATA = {
  "classes": CLASSES,
  "class_upgrades": CLASS_UPGRADES,
  "builds": BUILDS,
- "icons": {sk["id"]: icon_for(sk["en"]) for s in SHOPS for sk in s["skills"]} | {sk["id"]: icon_for(sk["en"]) for ups in CLASS_UPGRADES.values() for sk in ups},
+ "icons": {sk["id"]: "icons/" + sk["id"] + ".png" for s in SHOPS for sk in s["skills"]} | {sk["id"]: "icons/" + sk["id"] + ".png" for ups in CLASS_UPGRADES.values() for sk in ups},
  "stats": STATS,
  "status_effects": STATUS_EFFECTS,
  "runes": RUNES_FULL,

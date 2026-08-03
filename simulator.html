@@ -394,7 +394,7 @@ function renderPicker(cid) {
     const y = sc.recCount || null;
     return `
     <div class="pick-row" data-id="${s.id}">
-      ${icon ? `<img class="pick-icon" src="${icon}" alt="${s.zh}" loading="lazy">` : `<div class="si-ph" style="width:36px;height:36px;font-size:16px">${s.zh.slice(0,1)}</div>`}
+      ${icon ? `<img class="pick-icon" src="${icon}" alt="${s.zh}">` : `<div class="si-ph" style="width:36px;height:36px;font-size:16px">${s.zh.slice(0,1)}</div>`}
       <div class="pick-info">
         <span class="sp-zh">${s.zh}</span><span class="sp-en">${s.en}</span>
         <span class="pick-rank" style="${sc.status==='done'?'color:var(--text-dim)':sc.status==='warn'?'color:var(--accent2)':sc.status==='bad'?'color:var(--red)':'color:var(--blue)'}">#${rankOf[s.id]}${sc.status==='done'?' ✓':''}</span>
@@ -482,7 +482,7 @@ function renderState() {
       const icon = D.icons[s.id] || '';
       const badgeCls = sc.status==='done'?'ok':sc.status==='warn'?'warn':sc.status==='bad'?'bad':'';
       html += `<div class="skill-icon" data-id="${s.id}">
-        ${icon ? `<img src="${icon}" alt="${s.zh}" loading="lazy">` : `<div class="si-ph">${s.zh.slice(0,1)}</div>`}
+        ${icon ? `<img src="${icon}" alt="${s.zh}">` : `<div class="si-ph">${s.zh.slice(0,1)}</div>`}
         <span class="si-badge ${badgeCls}">${state[s.id]}${y?`/${y}`:''}</span>
         <button class="si-minus" data-dec="${s.id}" title="减 1 层">−</button>
         <div class="si-tip">${tooltipHtml(s, sc, y)}</div>
@@ -526,7 +526,7 @@ function renderPrio() {
     return `
     <div class="prio-item" data-id="${x.s.id}">
       <div class="prio-ring" style="background:${ringColor(x)}">${rankOf(x.s.id)}</div>
-      ${icon ? `<img class="prio-icon" src="${icon}" alt="${x.s.zh}" loading="lazy">` : `<div class="si-ph" style="width:34px;height:34px;font-size:15px">${x.s.zh.slice(0,1)}</div>`}
+      ${icon ? `<img class="prio-icon" src="${icon}" alt="${x.s.zh}">` : `<div class="si-ph" style="width:34px;height:34px;font-size:15px">${x.s.zh.slice(0,1)}</div>`}
       <div class="prio-name2">${x.s.zh}<span class="en">${x.s.en}</span></div>
       <span class="si-badge ${badgeCls}">${cur}${y?`/${y}`:''}</span>
       <div class="si-tip">${tooltipHtml(x.s, x, y)}</div>
