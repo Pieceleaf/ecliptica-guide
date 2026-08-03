@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>升级图鉴 - Ecliptica 日蚀攻略站</title>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
+    <a class="navlink" href="index.html">首页</a>
+    <a class="navlink" href="classes.html">职业</a>
+    <a class="navlink active" href="upgrades.html">升级图鉴</a>
+    <a class="navlink" href="builds.html">Build 参考</a>
+    <a class="navlink" href="simulator.html">加点模拟器</a>
+    <a class="navlink" href="stats.html">属性上限</a>
+    <a class="navlink" href="changelog.html">版本日志</a>
+    <span class="ver-tag" id="verTag"></span>
+  </nav>
+</header>
+<main>
+  <div class="page-head">
+    <h1>升级图鉴（技能 ↔ 点位查询）</h1>
+    <p>3 个商店点位（世界狭间 NPC）：<b>忍耐之晶</b>（生存）、<b>机动之晶</b>（机动）、<b>时空法师</b>（伤害/暴击/元素 + 各职业专属升级）。表格可按商店、稀有度、关键词筛选；技能名保留中/英/日三语，游戏内按英文名对照。</p>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px">
+      <select id="shopFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px">
+        <option value="all">全部商店</option>
+      </select>
+      <select id="rarFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px">
+        <option value="all">全部稀有度</option>
+        <option value="Common">Common 普通</option>
+        <option value="Rare">Rare 稀有</option>
+        <option value="Legendary">Legendary 传说</option>
+      </select>
+      <select id="clsFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px">
+        <option value="all">全部职业（含通用）</option>
+      </select>
+      <input type="text" id="kw" class="search-box" placeholder="🔍 搜索技能名（中/英/日）或效果关键词…" style="flex:1; margin-bottom:0">
+    </div>
+    <div style="overflow-x:auto">
+    <table id="skillTable">
+      <thead>
+        <tr><th>点位</th><th>稀有度</th><th>技能</th><th>效果</th><th>备注</th><th>标签</th></tr>
+      </thead>
+      <tbody id="skillBody"></tbody>
+    </table>
+    </div>
+    <div id="countInfo" class="tip" style="margin-top:10px"></div>
+  </div>
+</main>
+<nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class="active"><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class=""><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
+
+<footer>
+  Ecliptica 日蚀攻略站 · 数据来源：Miraheze / wikiwiki.jp / B站社区 · 非官方粉丝站<br>
+  数据更新至 v0.51（2026-07-29）
+</footer>
+<script src="data.js"></script>
+<script>
+const D = ECLIPTICA_DATA;
+document.getElementById('verTag').textContent = D.meta.version;
+
+const shopSel = document.getElementById('shopFilter');
+D.shops.forEach(s => shopSel.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.zh}（${s.en}）</option>`));
+const clsSel = document.getElementById('clsFilter');
+D.classes.forEach(c => clsSel.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.zh}（${c.en}）</option>`));
+
+// 展平所有技能：通用 + 职业专属
+function allSkills() {
+  const list = [];
+  D.shops.forEach(s => s.skills.forEach(sk => list.push({...sk, shopId:s.id, shopZh:s.zh, shopEn:s.en, classId:null})));
+  D.classes.forEach(c => (D.class_upgrades[c.id]||[]).forEach(sk => list.push({...sk, shopId:'chrono', shopZh:'时空法师（职业专属）', shopEn:'Chrono Wizard (Class)', classId:c.id, classZh:c.zh})));
+  return list;
+}
+const SKILLS = allSkills();
+
+function esc(t){return (t||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function render() {
+  const shop = shopSel.value, rar = rarFilter.value, cls = clsSel.value, kw = document.getElementById('kw').value.trim().toLowerCase();
+  let rows = SKILLS.filter(s => {
+    if (shop !== 'all' && s.shopId !== shop) return false;
+    if (rar !== 'all' && s.rarity !== rar) return false;
+    if (cls !== 'all' && s.classId !== cls) return false;
+    if (kw) {
+      const hay = (s.zh + ' ' + s.en + ' ' + s.jp + ' ' + s.descZh + ' ' + (s.notes||'')).toLowerCase();
+      if (!hay.includes(kw)) return false;
+    }
+    return true;
+  });
+  document.getElementById('skillBody').innerHTML = rows.map(s => `
+    <tr>
+      <td>${s.classId ? `<span class="tag" style="border-color:var(--accent2);color:var(--accent2)">${s.classZh}</span>` : ''}<b>${s.shopZh}</b><span class="en">${s.shopEn}</span></td>
+      <td><span class="rar rar-${s.rarity}">${s.rarity}</span></td>
+      <td><b>${esc(s.zh)}</b><span class="en">${esc(s.en)}</span><span class="jp">${esc(s.jp||'')}</span></td>
+      <td>${esc(s.descZh)}</td>
+      <td>${esc(s.notes||'')}</td>
+      <td>${(s.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</td>
+    </tr>`).join('');
+  document.getElementById('countInfo').textContent = `共 ${rows.length} 个技能（通用 ${D.shops.reduce((a,s)=>a+s.skills.length,0)} + 职业专属 ${D.classes.reduce((a,c)=>a+(D.class_upgrades[c.id]||[]).length,0)}）`;
+}
+shopSel.onchange = render; rarFilter.onchange = render; clsSel.onchange = render;
+document.getElementById('kw').oninput = render;
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecliptica 日蚀攻略站 - VRChat 多人肉鸽</title>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
+    <a class="navlink active" href="index.html">首页</a>
+    <a class="navlink" href="classes.html">职业</a>
+    <a class="navlink" href="upgrades.html">升级图鉴</a>
+    <a class="navlink" href="builds.html">Build 参考</a>
+    <a class="navlink" href="simulator.html">加点模拟器</a>
+    <a class="navlink" href="stats.html">属性上限</a>
+    <a class="navlink" href="changelog.html">版本日志</a>
+    <span class="ver-tag" id="verTag"></span>
+  </nav>
+</header>
+<main>
+  <div class="page-head">
+    <h1>Ecliptica（日蚀）— VRChat 合作肉鸽竞技场</h1>
+    <p>由 Mantibro（SlashCo VR 团队成员）制作的 VRChat Co-op Roguelite Arena Fighter Action RPG。进入游戏前，请先收藏本站与英文/日文 Wiki。</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h2>📖 游戏是什么</h2>
+      <p>最多多人合作的肉鸽竞技场：清小怪 → 收集神器与代币 → 挑战 Boss → 休息区购买升级（加点）→ 挑战更强 Boss → 共 <b>13 关</b>（12 普通 Boss + 最终 Boss Jim C. Bringer）。</p>
+      <p style="margin-top:8px">每局中途可在「世界狭间」的日蚀黑洞处 <b>更换职业一次</b>（返还 95% 代币，需至少进行 3 轮）。</p>
+      <p style="margin-top:8px">目前为 Patreon Demo Playtest（v0.51，2026-07-29），需房主为赞助成员才能开房；非赞助玩家可中途加入。</p>
+      <div style="margin-top:12px">
+        <span class="badge"><b>6</b> 难度</span>
+        <span class="badge"><b>8</b> 职业</span>
+        <span class="badge"><b>62</b> 通用升级</span>
+        <span class="badge"><b>54</b> 职业专属升级</span>
+        <span class="badge"><b>13</b> 关</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔗 外部资料</h2>
+      <ul style="padding-left:20px; font-size:14px">
+        <li><a href="https://ecliptica.miraheze.org/wiki/Main_Page" target="_blank">英文官方社区 Wiki（Miraheze）</a> — 技能/敌人/Boss 全数据</li>
+        <li><a href="https://wikiwiki.jp/ecliptica/" target="_blank">日文攻略 Wiki（wikiwiki.jp）</a> — 更新日志/Build/实测数值</li>
+        <li><a href="https://ecliptica.0862233.xyz" target="_blank">中文图鉴站（黑崎ー护）</a> — 中文速查</li>
+        <li><a href="https://vrchat.com/home/world/wrld_0fb88df3-2057-4c2f-8e06-e948864378fd" target="_blank">VRChat 世界页（Ecliptica - Demo Playtest）</a></li>
+        <li><a href="https://www.patreon.com/Mantibro" target="_blank">Patreon（Mantibro）</a> — Demo 测试资格</li>
+        <li><a href="https://x.com/mantibro" target="_blank">X: @mantibro</a> / <a href="https://x.com/ruralistvevo" target="_blank">wiki 作者 @ruralistvevo</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🕹 操作与基础机制</h2>
+    <div class="grid grid-2">
+      <div>
+        <h3>操作键位（桌面端）</h3>
+        <table>
+          <tr><th>操作</th><th>按键</th></tr>
+          <tr><td>普攻（Primary）</td><td>鼠标左键</td></tr>
+          <tr><td>技能（Secondary）</td><td>鼠标右键</td></tr>
+          <tr><td>位移技能（Utility）</td><td>Shift</td></tr>
+          <tr><td>交互 / 打开面板</td><td>Q</td></tr>
+          <tr><td>移动</td><td>WASD</td></tr>
+          <tr><td>地面指示（推荐开启）</td><td>F5</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>每关流程</h3>
+        <table>
+          <tr><th>阶段</th><th>内容</th></tr>
+          <tr><td>战斗</td><td>清小怪；每关固定刷 <b>3 个代币</b>（蓝色箭头，位置随机，务必拿完）</td></tr>
+          <tr><td>准备</td><td>获得加速状态；收集神器（黄色箭头）献祭中央祭坛，全队共享加成</td></tr>
+          <tr><td>Boss</td><td>击败 Boss（v0.51 起开门时全队回满血）</td></tr>
+          <tr><td>休息</td><td>世界狭间：3 个商店购买升级 + 1 次免费重随；可换职业</td></tr>
+        </table>
+        <div class="tip">代币未用完可存留至下一轮；加入别人房间时会按进度补发代币（进度平衡）。</div>
+      </div>
+    </div>
+    <h3>生命与复活</h3>
+    <p style="font-size:14px">每人每关 <b>2 条命</b>：倒地后队友可消耗 <b>50% 最大生命</b> 复活你（带白色环=可复活，黑色=不可）；复活获得「致命诅咒」（召唤 Boss 时移除一次）。<b>健康守护（Healthy Guard）</b> 可使复活成本降至 25%。</p>
+  </div>
+
+  <div class="card">
+    <h2>🏆 难度体系</h2>
+    <p style="font-size:14px; margin-bottom:10px">难度在休息阶段确认，随进度解锁；难度决定出现的小怪与 Boss 池：</p>
+    <table>
+      <tr><th>难度</th><th>说明</th></tr>
+      <tr><td>Primal（原始）</td><td>入门难度</td></tr>
+      <tr><td>Penumbra（半影）</td><td>第一个进阶</td></tr>
+      <tr><td>Antumbra（环影）</td><td>中期</td></tr>
+      <tr><td>Umbra（本影）</td><td>后期</td></tr>
+      <tr><td>Eclipse（日蚀）</td><td>高难（Build 必须成型）</td></tr>
+      <tr><td>Eye of the Eclipse（日蚀之眼）</td><td>最高难（终局）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>💎 加点（升级）体系速览</h2>
+    <p style="font-size:14px; margin-bottom:10px">休息区有 <b>3 个商店点位</b>，每个商店出售固定池的技能（随机刷新 4 个候选），购买后自动重随，可重复购买同一技能叠层：</p>
+    <div class="grid grid-3" id="shopGrid"></div>
+    <div class="tip">⭐ 快速查询：去 <a href="upgrades.html">升级图鉴</a> 按商店/稀有度/关键词筛选；去 <a href="simulator.html">加点模拟器</a> 同步你的加点状态，获得当前最优先推荐。</div>
+  </div>
+
+  <div class="card">
+    <h2>⚡ 当前版本情报（v0.51）</h2>
+    <div class="grid grid-2" id="metaGrid"></div>
+  </div>
+</main>
+<nav class="bottom-nav"><a href="index.html" class="active"><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class=""><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class=""><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
+
+<footer>
+  Ecliptica 日蚀攻略站 · 数据来源：Miraheze 英wiki / wikiwiki.jp 日wiki / B站社区 / X · 非官方粉丝站，游戏版权归 Mantibro 所有<br>
+  数据更新至 v0.51（2026-07-29）· 本站为静态站，数据可于 <code>data.js</code> 维护
+</footer>
+<script src="data.js"></script>
+<script>
+const D = ECLIPTICA_DATA;
+document.getElementById('verTag').textContent = D.meta.version;
+
+// 商店概览
+document.getElementById('shopGrid').innerHTML = D.shops.map(s => `
+  <div class="card" style="margin-bottom:0">
+    <h3 style="color:var(--accent)">${s.zh} <span style="font-size:12px;color:var(--text-dim)">${s.en}</span></h3>
+    <p style="font-size:13px;color:var(--text-dim)">${s.theme}</p>
+    <p style="margin-top:8px;font-size:13px">${s.skills.length} 个技能：</p>
+    <div style="margin-top:6px">${s.skills.slice(0,8).map(x => `<span class="tag">${x.zh}</span>`).join('')}${s.skills.length>8?'<span class="tag">…</span>':''}</div>
+  </div>`).join('');
+
+// 版本情报
+document.getElementById('metaGrid').innerHTML = `
+  <div>
+    <h3>社区共识（2026-07 ~ 08）</h3>
+    <ul style="padding-left:20px;font-size:13.5px">
+      <li><b>光法（Twinmage 圣光手）</b>当前最强输出：圣光基础伤害 50 vs 其他元素 30</li>
+      <li>攻速拉到 <b>200%</b> 即可，再往上收益递减</li>
+      <li>书奶（Thaumaturge）v0.51 被削：自我治疗 CD 慢 75%、兴奋剂受限制</li>
+      <li>光枪（Gunmancer）当前偏弱；核爆锤（Spellhammer 投掷流）上限约 1550</li>
+      <li>推荐配置：1 盾法师 + 2 书奶 + 1 猫奶 + 输出（日wiki 新手引导）</li>
+    </ul>
+  </div>
+  <div>
+    <h3>注意</h3>
+    <ul style="padding-left:20px;font-size:13.5px">
+      <li>单排时「背水一战」「献祭羔羊」不会出现在商店</li>
+      <li>「烈焰之灵」与「寒冰之心」<b>互斥</b>，只能取其一</li>
+      <li>通关最终 Boss 奖励随机符文（不重复），可带出局外但附随机减益；当前版本最多装 2 个符文</li>
+      <li>属性有软/硬上限，堆过软上限收益骤降 → 详见<a href="stats.html">属性上限</a></li>
+    </ul>
+  </div>`;
+</script>
+</body>
+</html>

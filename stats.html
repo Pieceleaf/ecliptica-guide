@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>属性上限 - Ecliptica 日蚀攻略站</title>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
+    <a class="navlink" href="index.html">首页</a>
+    <a class="navlink" href="classes.html">职业</a>
+    <a class="navlink" href="upgrades.html">升级图鉴</a>
+    <a class="navlink" href="builds.html">Build 参考</a>
+    <a class="navlink" href="simulator.html">加点模拟器</a>
+    <a class="navlink active" href="stats.html">属性上限</a>
+    <a class="navlink" href="changelog.html">版本日志</a>
+    <span class="ver-tag" id="verTag"></span>
+  </nav>
+</header>
+<main>
+  <div class="page-head">
+    <h1>属性与软/硬上限</h1>
+    <p>大部分"线性"升级的属性本身存在 <b>软上限（soft cap）</b> 与 <b>硬上限（hard cap）</b>：到达软上限后继续堆叠收益骤降（状态面板以红色 ▼ 标注），硬上限以上几乎无收益。这是"最终加点"必须考虑的因素——后期点数溢出时应优先补非核心技能，而不是死堆已到上限的属性。</p>
+  </div>
+
+  <div class="card">
+    <table id="statTable">
+      <thead><tr><th>属性</th><th>软上限</th><th>硬上限</th><th>说明</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="tip" style="margin-top:10px">
+      ⚠ 硬上限并非绝对（需要数百层才能触及，正常对局不可能达到）；软上限后每层收益递减。具体每个属性的堆叠来源见 <a href="upgrades.html">升级图鉴</a>；与加点进度联动的优先级推荐见 <a href="simulator.html">加点模拟器</a>。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>最终加点思路（如何利用溢出点数）</h2>
+    <div class="grid grid-2">
+      <div>
+        <h3>先确保核心达标</h3>
+        <ul style="padding-left:20px; font-size:14px">
+          <li>Build 必须项：如书奶锐眼×7、盾法师不坏×8-10、攻速 200% 等（见 <a href="builds.html">Build 参考</a>）</li>
+          <li>生存底线：1 层「不稳定韧性」+ 1 层「背水一战」（Last Stand）是几乎所有职业的保险</li>
+          <li>对应属性推到软上限前即可：攻速 250%、暴击率 40%、移速 150%、辅助 CD 200%</li>
+        </ul>
+      </div>
+      <div>
+        <h3>溢出点数（软上限后）优先级</h3>
+        <ol style="padding-left:20px; font-size:14px">
+          <li>Build 准必须项（书奶奥义、盾法师雷霆光环等）</li>
+          <li>免费白嫖输出：净化祝福、愤怒诅咒、烈焰/寒冰之灵</li>
+          <li>保命冗余：健康守护、铁皮/导电护甲、HP 补强</li>
+          <li>位移/机动：二段跳（Partial Flight）、额外急速来源</li>
+          <li>避免：已互斥技能、Build 明确不推荐的技能（如书奶分裂射击）</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</main>
+<nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class=""><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class=""><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class="active"><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
+
+<footer>
+  Ecliptica 日蚀攻略站 · 数据来源：Miraheze Stats 页 + wikiwiki.jp · 非官方粉丝站<br>
+  数据更新至 v0.51（2026-07-29）
+</footer>
+<script src="data.js"></script>
+<script>
+const D = ECLIPTICA_DATA;
+document.getElementById('verTag').textContent = D.meta.version;
+document.querySelector('#statTable tbody').innerHTML = D.stats.map(s => `
+  <tr>
+    <td><b>${s.zh}</b><span class="en">${s.en}</span></td>
+    <td>${s.soft ? `${s.soft}${s.unit||''} <span style="color:var(--accent2)">▼ 软</span>` : '—'}</td>
+    <td>${s.hard ? `${s.hard}${s.unit||''} <span style="color:var(--red)">■ 硬</span>` : '—'}</td>
+    <td>${s.desc}</td>
+  </tr>`).join('');
+</script>
+</body>
+</html>

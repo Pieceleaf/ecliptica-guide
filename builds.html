@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build 参考 - Ecliptica 日蚀攻略站</title>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
+    <a class="navlink" href="index.html">首页</a>
+    <a class="navlink" href="classes.html">职业</a>
+    <a class="navlink" href="upgrades.html">升级图鉴</a>
+    <a class="navlink active" href="builds.html">Build 参考</a>
+    <a class="navlink" href="simulator.html">加点模拟器</a>
+    <a class="navlink" href="stats.html">属性上限</a>
+    <a class="navlink" href="changelog.html">版本日志</a>
+    <span class="ver-tag" id="verTag"></span>
+  </nav>
+</header>
+<main>
+  <div class="page-head">
+    <h1>Build 参考：最终理想加点（按流派）</h1>
+    <p>以 <b>通关（最终 Boss）为前提</b> 的最终形态加点方案：分为「必须」（最终需堆到的数量）、「准必须/可选」（后期溢出再补）、「不要」（别碰）。加点是随机的（商店刷新），因此同时给出 reroll 策略。<b>同一职业下按玩法流派区分</b>（如法锤士分抛锤/砸锤、枪术士分光枪/物理枪）。⚠ 加点目标会随版本变化，请对照<a href="changelog.html">版本日志</a>。</p>
+  </div>
+
+  <nav id="buildTabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px"></nav>
+  <div id="archTabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px"></div>
+
+  <div id="buildList"></div>
+</main>
+<footer>
+  Ecliptica 日蚀攻略站 · Build 来源：日文wiki build页 + B站社区实战 · 非官方粉丝站<br>
+  数据更新至 v0.51（2026-07-29）
+</footer>
+<nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class=""><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class="active"><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class=""><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
+<script src="data.js"></script>
+<script>
+const D = ECLIPTICA_DATA;
+document.getElementById('verTag').textContent = D.meta.version;
+
+const skillName = id => {
+  for (const s of D.shops) for (const sk of s.skills) if (sk.id === id) return {zh:sk.zh, en:sk.en};
+  for (const c of D.classes) for (const sk of (D.class_upgrades[c.id]||[])) if (sk.id === id) return {zh:sk.zh, en:sk.en};
+  return {zh:id, en:''};
+};
+
+let currentCls = null;
+let currentArch = null;
+
+// 职业 tabs
+const tabs = document.getElementById('buildTabs');
+D.classes.forEach(c => {
+  tabs.insertAdjacentHTML('beforeend', `<button data-cls="${c.id}" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px">${c.zh} <small style="color:var(--text-dim)">${c.en}</small></button>`);
+});
+
+function fillArchTabs() {
+  const box = document.getElementById('archTabs');
+  const bs = D.builds.filter(b => b.classId === currentCls);
+  box.innerHTML = '<span style="color:var(--text-dim);font-size:13px;align-self:center">流派：</span>' + bs.map((b, i) => `
+    <button data-arch="${b.archetypeId}" style="background:${b.archetypeId===currentArch?'rgba(240,180,41,.15)':'var(--bg3)'};border:1px solid ${b.archetypeId===currentArch?'var(--accent)':'var(--border)'};color:${b.archetypeId===currentArch?'var(--accent)':'var(--text)'};padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13.5px">${b.archetype}</button>`).join('');
+  box.querySelectorAll('button').forEach(btn => btn.onclick = () => { currentArch = btn.dataset.arch; fillArchTabs(); renderBuild(); });
+}
+
+function renderBuild() {
+  const b = D.builds.find(x => x.classId === currentCls && x.archetypeId === currentArch);
+  if (!b) return;
+  const c = D.classes.find(x => x.id === b.classId);
+  const block = (title, items, cls, headColor) => items && items.length ? `
+    <div class="build-block ${cls}">
+      <h4 style="color:${headColor}">${title}</h4>
+      ${items.map(it => {
+        const n = skillName(it.id);
+        const cnt = it.count ? `<span class="cnt">×${it.count}</span>` : '';
+        return `<div class="build-item">${cnt} <b>${n.zh}</b> <span class="en">${n.en}</span> — <span class="why">${it.reason}</span></div>`;
+      }).join('')}
+    </div>` : '';
+  document.getElementById('buildList').innerHTML = `
+    <div class="card">
+      <h2>${c.zh}（${c.en}）· ${b.archetype} <span style="font-size:13px;color:var(--text-dim)">${b.title}</span></h2>
+      <p style="font-size:13px;color:var(--text-dim)">适用版本：<b style="color:var(--accent)">${b.patch}</b> · 来源：${b.source}</p>
+      ${block('🟥 必须（最终形态核心）', b.must, 'build-must', 'var(--red)')}
+      ${block('🟦 准必须 / 可选（后期溢出优先补）', b.nice, 'build-nice', 'var(--blue)')}
+      ${block('⬛ 不要（浪费点数 / 副作用大）', b.avoid, 'build-avoid', 'var(--text-dim)')}
+      <h3>玩法要点</h3>
+      <p style="font-size:14px">${b.playstyle}</p>
+      ${b.reroll ? `<h3>Reroll / 商店策略</h3><p style="font-size:14px">${b.reroll}</p>` : ''}
+      <div class="tip">💡 把该方案作为「最终目标」在 <a href="simulator.html?cls=${c.id}&arch=${b.archetypeId}">加点模拟器</a> 中对照：模拟器会按你当前加点状态给出接下来的优先级推荐。</div>
+    </div>`;
+}
+
+tabs.querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabs.querySelectorAll('button').forEach(b => { b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text)'; });
+    btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)';
+    currentCls = btn.dataset.cls;
+    const bs = D.builds.filter(b => b.classId === currentCls);
+    currentArch = bs[0].archetypeId;
+    fillArchTabs();
+    renderBuild();
+  });
+});
+
+// 初始化：URL 参数定位
+const q = new URLSearchParams(location.search);
+const qCls = q.get('cls');
+const qArch = q.get('arch');
+currentCls = (qCls && D.classes.some(c=>c.id===qCls)) ? qCls : D.classes[0].id;
+const bs0 = D.builds.filter(b => b.classId === currentCls);
+currentArch = (qArch && bs0.some(b=>b.archetypeId===qArch)) ? qArch : bs0[0].archetypeId;
+tabs.querySelectorAll('button').forEach(b => { if (b.dataset.cls === currentCls) { b.style.borderColor = 'var(--accent)'; b.style.color = 'var(--accent)'; } });
+fillArchTabs();
+renderBuild();
+</script>
+</body>
+</html>

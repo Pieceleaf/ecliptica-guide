@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职业 - Ecliptica 日蚀攻略站</title>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
+    <a class="navlink" href="index.html">首页</a>
+    <a class="navlink active" href="classes.html">职业</a>
+    <a class="navlink" href="upgrades.html">升级图鉴</a>
+    <a class="navlink" href="builds.html">Build 参考</a>
+    <a class="navlink" href="simulator.html">加点模拟器</a>
+    <a class="navlink" href="stats.html">属性上限</a>
+    <a class="navlink" href="changelog.html">版本日志</a>
+    <span class="ver-tag" id="verTag"></span>
+  </nav>
+</header>
+<main>
+  <div class="page-head">
+    <h1>职业一览</h1>
+    <p>8 个职业按定位分为 ATTACK（攻击）/ HEAVY（重型）/ SUPPORT（辅助）。中途可在世界狭间日蚀处更换（95% 代币返还，每 3 轮 1 次）。</p>
+  </div>
+
+  <div class="grid grid-3" id="classGrid"></div>
+
+  <div class="card" id="classDetail" style="display:none; margin-top:20px"></div>
+</main>
+<nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class="active"><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class=""><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class=""><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
+
+<footer>
+  Ecliptica 日蚀攻略站 · 数据来源：Miraheze / wikiwiki.jp / B站社区 · 非官方粉丝站<br>
+  数据更新至 v0.51（2026-07-29）
+</footer>
+<script src="data.js"></script>
+<script>
+const D = ECLIPTICA_DATA;
+document.getElementById('verTag').textContent = D.meta.version;
+
+const roleNames = {ATTACK:'攻击', HEAVY:'重型', SUPPORT:'辅助'};
+
+// 职业卡片
+document.getElementById('classGrid').innerHTML = D.classes.map(c => `
+  <div class="class-card" data-id="${c.id}">
+    <span class="role role-${c.role}">${roleNames[c.role]} ${c.role}</span>
+    <h3>${c.zh} <span class="en">${c.en} · ${c.jp}</span></h3>
+    <p>${c.descZh}</p>
+    <p style="margin-top:6px"><span class="badge">HP：${c.hp}</span>
+    ${(D.class_upgrades[c.id]||[]).length ? `<span class="badge">专属升级 ${D.class_upgrades[c.id].length} 个</span>` : ''}</p>
+    <a href="builds.html#${c.id}" style="font-size:13px">查看 Build 加点 →</a>
+  </div>`).join('');
+
+// 点击卡片展开详情
+document.querySelectorAll('.class-card').forEach(el => {
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', () => showClass(el.dataset.id));
+});
+
+function showClass(id) {
+  const c = D.classes.find(x => x.id === id);
+  const ups = D.class_upgrades[id] || [];
+  const box = document.getElementById('classDetail');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <h2>${c.zh}（${c.en} / ${c.jp}）<span class="role role-${c.role}">${roleNames[c.role]}</span></h2>
+    <p style="margin-bottom:10px">${c.descZh} <span class="en">${c.desc}</span></p>
+    <h3>技能</h3>
+    <table>
+      <tr><th>类型</th><th>技能</th><th>说明</th></tr>
+      ${c.skills.map(s => `<tr><td><b>${s.type}</b></td><td>${s.zh}<span class="en">${s.en}</span></td><td>${s.desc}</td></tr>`).join('')}
+    </table>
+    <h3>职业专属升级（${ups.length} 个）</h3>
+    <table>
+      <tr><th>稀有度</th><th>技能</th><th>效果</th><th>备注</th></tr>
+      ${ups.map(u => `<tr>
+        <td><span class="rar rar-${u.rarity}">${u.rarity}</span></td>
+        <td>${u.zh}<span class="en">${u.en}</span><span class="jp">${u.jp}</span></td>
+        <td>${u.descZh}</td>
+        <td>${u.notes || ''}</td>
+      </tr>`).join('')}
+    </table>
+    <div class="tip">在游戏内请以英文名对照（${c.en}：${c.skills.map(s=>s.en).join(' / ')}）。</div>`;
+  box.scrollIntoView({behavior:'smooth', block:'start'});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>加点模拟器 - Ecliptica 日蚀攻略站</title>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
+    <a class="navlink" href="index.html">首页</a>
+    <a class="navlink" href="classes.html">职业</a>
+    <a class="navlink" href="upgrades.html">升级图鉴</a>
+    <a class="navlink" href="builds.html">Build 参考</a>
+    <a class="navlink active" href="simulator.html">加点模拟器</a>
+    <a class="navlink" href="stats.html">属性上限</a>
+    <a class="navlink" href="changelog.html">版本日志</a>
+    <span class="ver-tag" id="verTag"></span>
+  </nav>
+</header>
+<main>
+  <div class="page-head">
+    <h1>加点模拟器 & 优先级计算器</h1>
+    <p>① 选择职业与流派 → ② <b>搜索技能，点击「＋」加点</b>（同一技能可多次加点叠层）→ ③ 系统实时给出该技能在该职业流派下的<b>绝对优先级排名</b>，并联动当前加点状态与流派 Build 目标给出下一步建议。</p>
+    <div class="tip">说明：优先级 = 基准分（社区共识） + 流派 Build 修正（必须/准必须/不要） + 进度修正（已达标降权 / 属性接近软上限降权 / 互斥排除）。基准分与软上限估算为攻略站整理，非官方数值。</div>
+  </div>
+
+  <div class="sim-layout">
+    <!-- 左：加点面板 -->
+    <div class="control-panel card">
+      <div class="select-row">
+        <label>职业</label>
+        <select id="clsSel"></select>
+      </div>
+      <div class="select-row">
+        <label>流派（决定 Build 目标与优先级）</label>
+        <select id="archSel"></select>
+      </div>
+      <button class="search-trigger" id="searchTrigger">🔍 搜索技能加点</button>
+      <div class="search-panel-inline">
+        <div class="picker-tabs" id="pickerTabs">
+          <button data-tab="skill" class="active">技能</button>
+          <button data-tab="rune">符文</button>
+          <button data-tab="curse">诅咒</button>
+          <button data-tab="artifact">神器</button>
+        </div>
+        <div class="select-row">
+          <label id="pickerLabel">🔍 搜索技能，点「＋」加点（可叠多层）</label>
+          <input type="text" id="skillKw" class="search-box" placeholder="输入中/英技能名…">
+          <div class="skill-picker" id="skillPicker"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+        <button id="btnReset" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer">清空加点</button>
+        <button id="btnApplyBuild" style="background:rgba(240,180,41,.15);border:1px solid var(--accent);color:var(--accent);padding:6px 14px;border-radius:6px;cursor:pointer">一键填充流派 Build 目标</button>
+        <button id="btnStats" style="background:rgba(86,156,255,.15);border:1px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:6px;cursor:pointer">📊 当前属性</button>
+      </div>
+      <div class="tip" style="margin-top:10px">「一键填充」把当前流派 Build 的必须/准必须项填到推荐层数，方便对照你的实际加点差距。</div>
+    </div>
+
+    <!-- 右：结果 -->
+    <div>
+      <div class="card">
+        <h2>当前加点 <span id="stateCount" style="font-size:13px;color:var(--text-dim)"></span></h2>
+        <div id="stateTable"></div>
+      </div>
+      <div class="card">
+        <h2>优先级排序 <span id="modeLabel" style="font-size:13px;color:var(--text-dim)"></span></h2>
+        <div class="prio-tabs" id="prioTabs"></div>
+        <div id="prioList"></div>
+      </div>
+      <div class="card">
+        <h2>📋 下一步加点建议</h2>
+        <div id="nextStep" style="font-size:14px"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- 手机端：搜索弹窗 -->
+<div class="search-modal" id="searchModal">
+  <div class="sm-head">
+    <input type="text" id="smKw" class="search-box" placeholder="输入中/英技能名…">
+    <span class="sm-close" id="smClose">✕ 关闭</span>
+  </div>
+  <div class="skill-picker" id="smPicker"></div>
+</div>
+
+<!-- 手机端：技能详情弹窗（点加/减加点） -->
+<div class="detail-modal" id="detailModal">
+  <div class="dm-box">
+    <div id="dmBody"></div>
+    <div class="dm-actions">
+      <button class="dm-btn minus" id="dmMinus">−</button>
+      <span class="dm-count" id="dmCount">0</span>
+      <button class="dm-btn plus" id="dmPlus">＋</button>
+    </div>
+    <div class="dm-close" id="dmClose">点击空白处关闭</div>
+  </div>
+</div>
+
+<!-- 当前属性弹窗 -->
+<div class="detail-modal" id="statsModal">
+  <div class="dm-box" style="width:min(520px,94vw)">
+    <h3 style="margin-bottom:10px">📊 当前属性 <span id="statsSub" style="font-size:12px;color:var(--text-dim)"></span></h3>
+    <div id="statsBody" style="font-size:13.5px"></div>
+    <div class="dm-close" id="statsClose">点击空白处关闭</div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class=""><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class="active"><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
+<footer>
+  Ecliptica 日蚀攻略站 · 优先级为攻略站整理的社区共识模型 · 非官方数值<br>
+  数据更新至 v0.51（2026-07-29）
+</footer>
+<script src="data.js"></script>
+<script>
+const D = ECLIPTICA_DATA;
+document.getElementById('verTag').textContent = D.meta.version;
+
+// ---------- 状态 ----------
+let state = {};          // skillId -> 层数
+let currentCls = null;
+let currentArch = null;
+
+const clsSel = document.getElementById('clsSel');
+const archSel = document.getElementById('archSel');
+D.classes.forEach(c => clsSel.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.zh}（${c.en}）</option>`));
+
+function classSkills(clsId) {
+  const list = [];
+  D.shops.forEach(s => s.skills.forEach(sk => list.push({...sk, shopId:s.id})));
+  (D.class_upgrades[clsId]||[]).forEach(sk => list.push({...sk, shopId:'class'}));
+  return list;
+}
+function buildsOf(clsId) { return D.builds.filter(b => b.classId === clsId); }
+function buildOf(clsId, archId) { return D.builds.find(b => b.classId === clsId && b.archetypeId === archId); }
+function nameOf(id) {
+  for (const s of D.shops) for (const sk of s.skills) if (sk.id === id) return sk;
+  for (const c of D.classes) for (const sk of (D.class_upgrades[c.id]||[])) if (sk.id === id) return sk;
+  return {zh:id, en:''};
+}
+
+// ---------- 流派选择 ----------
+function fillArchetypes() {
+  const bs = buildsOf(currentCls);
+  archSel.innerHTML = '';
+  bs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">${b.archetype}（${b.title}）</option>`));
+  currentArch = bs.length ? bs[0].archetypeId : null;
+}
+
+// ---------- 软上限近似估算 ----------
+const CAP_APPROX = {
+  attackspeed:  {soft: 10, note: '攻速软上限 250%（约 10-12 层攻速类）'},
+  movespeed:   {soft: 8,  note: '移速软上限 150%（约 8-10 层移速类）'},
+  crit:        {soft: 5,  note: '暴击率软上限 40%（约 5-6 层暴击类）'},
+  utility:     {soft: 10, note: '辅助 CD 软上限 200%（约 10 层）'},
+  regen:       {soft: 10, note: '自然回复无硬上限但边际递减'},
+  hp:          {soft: 10, note: 'HP 无上限，按 Build 目标取'},
+};
+function tagLayers(clsId) {
+  const acc = {};
+  for (const sk of classSkills(clsId)) {
+    const n = state[sk.id] || 0;
+    if (!n) continue;
+    (sk.tags||[]).forEach(t => acc[t] = (acc[t]||0) + n);
+  }
+  return acc;
+}
+
+// ---------- 优先级评分 ----------
+// 原则：构筑目标层数（count）主导排序——投入点数越多越优先；
+// 输出/流派核心微升，纯保命单件（×1 层保险）降权；已达标大幅降权。
+function scoreSkill(sk, clsId, archId) {
+  const b = buildOf(clsId, archId);
+  const cur = state[sk.id] || 0;
+  let s = sk.base || 50;
+  const reasons = [];
+  let rec = null, tier = null;
+  if (b) {
+    if (b.must.some(x => x.id === sk.id)) { tier='must'; rec = b.must.find(x=>x.id===sk.id); }
+    else if (b.nice.some(x => x.id === sk.id)) { tier='nice'; rec = b.nice.find(x=>x.id===sk.id); }
+    else if (b.avoid.some(x => x.id === sk.id)) { tier='avoid'; rec = b.avoid.find(x=>x.id===sk.id); }
+  }
+  let status = '';
+  if (tier === 'must') {
+    const cnt = rec && rec.count ? rec.count : 1;
+    s = 50 + Math.min(cnt, 12) * 3.5;              // 层数目标主导
+    s += (sk.base - 50) * 0.2;                     // 社区基准微调
+    if ((sk.tags||[]).includes('dmg')) s += 4;     // 输出向微升
+    if (cnt === 1 && (sk.tags||[]).some(t => ['survival','hp','defense'].includes(t))) s -= 6; // 纯保命单件降权
+    if (cur > 0 && rec && rec.count) s += Math.min(rec.count - cur, 6) * 1.5;  // 缺口越大越优先
+    if (rec && rec.count && cur >= rec.count) { s -= 60; status = 'done'; reasons.push(`已达构筑目标 ${rec.count} 层`); }
+    else if (!cur) reasons.push(`构筑必须项（目标 ×${rec.count||'按需'}）`);
+    else reasons.push(`已点 ${cur}/${rec.count} 层，继续补`);
+  } else if (tier === 'nice') {
+    s = Math.max(40, s) * 0.5 + 15;                // 可选压低
+    if (cur > 0) s -= 8;
+    reasons.push('构筑可选');
+  } else if (tier === 'avoid') {
+    s = Math.min(s, 15); reasons.push('构筑明确不推荐');
+  } else {
+    s = s * 0.55; reasons.push('不在当前构筑方案中');
+  }
+  if (sk.shopId === 'class') s += 4;
+  const layers = tagLayers(clsId);
+  for (const t of (sk.tags||[])) {
+    const cap = CAP_APPROX[t];
+    if (cap && layers[t] > cap.soft) { s -= 18; status = status||'warn'; reasons.push(`${cap.note}（当前约 ${layers[t]} 层）`); }
+  }
+  if (sk.mutual) {
+    for (const mid of sk.mutual) if ((state[mid]||0) > 0) {
+      s -= 60; status = status||'bad'; reasons.push('与已加技能互斥');
+    }
+  }
+  return { score: Math.max(0, Math.min(100, s)), status, reasons: reasons.slice(0,3), tier, cur, recCount: rec&&rec.count };
+}
+
+// ---------- 搜索 Tab（技能/符文/诅咒/神器） ----------
+let pickerTab = 'skill';
+const runeOrder = [];      // 符文槽位（最多 2）：第 1 个 ×1，第 2 个 ×2
+const curseOrder = [];     // 诅咒槽位（最多 2）：第 1 个 ×1，第 2 个 ×2
+const artifactState = {};  // 已获得神器 {id: n}——每小局可获得 1 个、可重复，加成跨小局持续累积（最多 12 个）
+const RUNE_MAX = 2;
+const ARTIFACT_MAX = 12;
+
+function renderRunePicker(cid) {
+  const kw = document.getElementById(cid === 'skillPicker' ? 'skillKw' : 'smKw').value.trim().toLowerCase();
+  const shown = D.runes.filter(r => !kw || (r.zh + ' ' + r.en).toLowerCase().includes(kw));
+  document.getElementById(cid).innerHTML = shown.map(r => {
+    const slot = runeOrder.indexOf(r.id);  // -1 未装；0 槽1(×1)；1 槽2(×2)
+    return `
+    <div class="pick-row" data-id="${r.id}" style="cursor:pointer">
+      <div class="pick-info">
+        <span class="sp-zh">${r.zh}</span><span class="sp-en">${r.en}</span>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">✨ ${r.effect}</div>
+        <div style="font-size:11.5px;color:var(--red);margin-top:1px">☠ 诅咒：${r.curse}</div>
+      </div>
+      <div class="pick-actions">
+        <span class="pick-layers" id="runeTag-${r.id}">${slot >= 0 ? `槽${slot+1} ×${slot+1}` : '—'}</span>
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-dim);padding:10px">无匹配符文。</p>';
+  document.querySelectorAll(`#${cid} .pick-row[data-id]`).forEach(el => el.onclick = () => {
+    const id = el.dataset.id;
+    const slot = runeOrder.indexOf(id);
+    if (slot >= 0) { runeOrder.splice(slot, 1); }                        // 卸下
+    else { runeOrder.push(id); if (runeOrder.length > RUNE_MAX) runeOrder.shift(); }  // 队列：超出时自动顶掉最旧的
+    renderPicker(cid); renderAll();
+  });
+}
+
+function renderCursePicker(cid) {
+  const kw = document.getElementById(cid === 'skillPicker' ? 'skillKw' : 'smKw').value.trim().toLowerCase();
+  const shown = D.curses.filter(c => !kw || (c.zh + ' ' + c.en).toLowerCase().includes(kw));
+  document.getElementById(cid).innerHTML = shown.map(c => {
+    const slot = curseOrder.indexOf(c.id);
+    return `
+    <div class="pick-row" data-id="${c.id}" style="cursor:pointer">
+      <div class="pick-info">
+        <span class="sp-zh">${c.zh}</span><span class="sp-en">${c.en}</span>
+        <div style="font-size:12px;color:var(--red)">☠ ${c.effect}</div>
+      </div>
+      <div class="pick-actions">
+        <span class="pick-layers" id="curseTag-${c.id}">${slot >= 0 ? `槽${slot+1} ×${slot+1}` : '—'}</span>
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-dim);padding:10px">无匹配诅咒。</p>';
+  document.querySelectorAll(`#${cid} .pick-row[data-id]`).forEach(el => el.onclick = () => {
+    const id = el.dataset.id;
+    const slot = curseOrder.indexOf(id);
+    if (slot >= 0) { curseOrder.splice(slot, 1); }                        // 移除
+    else { curseOrder.push(id); if (curseOrder.length > RUNE_MAX) curseOrder.shift(); }  // 队列：超出时自动顶掉最旧的
+    renderPicker(cid); renderAll();
+  });
+}
+
+function renderArtifactPicker(cid) {
+  const kw = document.getElementById(cid === 'skillPicker' ? 'skillKw' : 'smKw').value.trim().toLowerCase();
+  const shown = D.artifacts.filter(a => !kw || (a.zh + ' ' + a.en).toLowerCase().includes(kw));
+  document.getElementById(cid).innerHTML = shown.map(a => `
+    <div class="pick-row" data-id="${a.id}" style="cursor:pointer">
+      <div class="pick-info">
+        <span class="sp-zh">${a.zh}</span><span class="sp-en">${a.en}</span>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">🏺 ${a.effect} <span style="color:var(--accent)">${'★'.repeat(a.star)}${'☆'.repeat(3-a.star)}</span></div>
+      </div>
+      <div class="pick-actions">
+        <span class="pick-layers" id="artTag-${a.id}">${artifactState[a.id]?`×${artifactState[a.id]}`:'—'}</span>
+      </div>
+    </div>`).join('') || '<p style="color:var(--text-dim);padding:10px">无匹配神器。</p>';
+  document.querySelectorAll(`#${cid} .pick-row[data-id]`).forEach(el => el.onclick = () => {
+    const id = el.dataset.id;
+    // 每小局可获得 1 个、可重复；点击 +1，超过 12 个（最终 Boss 前小局数）回到 0
+    artifactState[id] = ((artifactState[id]||0) + 1) % (ARTIFACT_MAX + 1);
+    renderPicker(cid); renderAll();
+  });
+}
+
+// ---------- 当前属性计算（加点 + 符文 + 诅咒 + 神器） ----------
+function calcStats() {
+  const tot = {};   // stat -> 累计加成
+  const src = {};   // stat -> 来源说明数组
+  const add = (stat, v, from) => {
+    if (!v) return;
+    tot[stat] = (tot[stat]||0) + v;
+    (src[stat] = src[stat]||[]).push(`${from} ${v>0?'+':''}${v}${STAT_PCT[stat]?'%':''}`);
+  };
+  // 技能层数
+  for (const s of classSkills(currentCls)) {
+    const n = state[s.id]||0;
+    if (!n) continue;
+    const fx = D.stat_effects[s.id];
+    if (!fx) continue;
+    for (const [st, v] of Object.entries(fx)) add(st, v*n, `${s.zh}×${n}`);
+  }
+  // 符文（按槽位倍率：第 1 个 ×1，第 2 个 ×2）
+  runeOrder.forEach((rid, i) => {
+    const mult = i + 1;
+    const r = D.runes.find(x => x.id === rid);
+    if (!r) return;
+    for (const [st, v] of Object.entries(r.stat||{})) add(st, v*mult, `符文·${r.zh}×${mult}`);
+  });
+  // 诅咒（按槽位倍率：第 1 个 ×1，第 2 个 ×2）
+  curseOrder.forEach((cid, i) => {
+    const mult = i + 1;
+    const c = D.curses.find(x => x.id === cid);
+    if (!c) return;
+    const m = c.effect.match(/([+-]?\d+(?:\.\d+)?)%?/);
+    const v = m ? parseFloat(m[1]) * mult : 0;
+    const statKey = c.stat || (c.effect.includes('物理防御')||c.effect.includes('总防御') ? 'defense'
+      : c.effect.includes('最大生命') ? 'maxhp'
+      : c.effect.includes('自然回复') ? 'regen'
+      : c.effect.includes('受疗') ? 'healingrecv'
+      : c.effect.includes('辅助冷却') ? 'utilitycd' : null);
+    if (statKey && v) add(statKey, -Math.abs(v), `诅咒·${c.zh}×${mult}`);
+  });
+  // 神器（每小局获得 1 个、可重复，加成跨小局持续累积）
+  for (const [aid, n] of Object.entries(artifactState)) {
+    if (!n) continue;
+    const a = D.artifacts.find(x => x.id === aid);
+    if (!a) continue;
+    for (const [st, v] of Object.entries(a.stat||{})) add(st, v*n, `神器·${a.zh}×${n}`);
+  }
+  return { tot, src };
+}
+const STAT_PCT = { attackspeed:1, projectilespeed:1, movespeed:1, healingrecv:1, critchance:1, critdmg:1, utilitycd:1, defense:1, elemdefense:1, damage:1, knockbackres:1, jumpheight:1, regen:1 };
+
+function renderStatsModal() {
+  const { tot, src } = calcStats();
+  document.getElementById('statsSub').textContent = `· ${currentCls ? D.classes.find(c=>c.id===currentCls).zh : ''}（加点 + 符文 + 诅咒 + 神器）`;
+  let html = '<table style="width:100%;border-collapse:collapse">';
+  html += '<tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:4px">属性</th><th style="text-align:right;padding:4px">加成</th><th style="text-align:right;padding:4px">软/硬上限</th><th style="text-align:left;padding:4px">来源</th></tr>';
+  for (const st of D.stats) {
+    const v = tot[st.id]||0;
+    const softTxt = st.soft ? `${st.soft}${st.unit||''}` : '—';
+    const hardTxt = st.hard ? `${st.hard}${st.unit||''}` : '—';
+    let warn = '';
+    if (st.soft && v >= st.soft) warn = '<span style="color:var(--accent2)">⚠ 超软上限</span> ';
+    if (st.hard && v >= st.hard) warn = '<span style="color:var(--red)">⛔ 达硬上限</span> ';
+    const pct = STAT_PCT[st.id] ? '%' : '';
+    html += `<tr style="border-bottom:1px solid rgba(42,53,71,.4)">
+      <td style="padding:4px"><b>${st.zh}</b><span style="color:var(--text-dim);font-size:11px"> ${st.en}</span></td>
+      <td style="padding:4px;text-align:right;color:${v>=0?'var(--green)':'var(--red)'};font-weight:700">${v>0?'+':''}${v}${pct}</td>
+      <td style="padding:4px;text-align:right;color:var(--text-dim)">${warn}${softTxt}/${hardTxt}</td>
+      <td style="padding:4px;font-size:11.5px;color:var(--text-dim)">${(src[st.id]||[]).slice(0,4).join('、')||'—'}</td></tr>`;
+  }
+  html += '</table>';
+  html += '<p style="margin-top:8px;font-size:12px;color:var(--text-dim)">※ 加成以 100% 为基准（如攻速 100% + 加成 = 实际攻速）；最大生命为职业基础+加成。特殊效果技能（暴击触发类/减伤类等）不参与数值计算，详见技能详情。</p>';
+  document.getElementById('statsBody').innerHTML = html;
+  document.getElementById('statsModal').classList.add('show');
+}
+
+// ---------- 渲染：搜索加点面板（桌面内嵌 + 手机端弹窗共用） ----------
+function renderPicker(cid) {
+  cid = cid || 'skillPicker';
+  if (pickerTab === 'rune') return renderRunePicker(cid);
+  if (pickerTab === 'curse') return renderCursePicker(cid);
+  if (pickerTab === 'artifact') return renderArtifactPicker(cid);
+  const kw = document.getElementById(cid === 'skillPicker' ? 'skillKw' : 'smKw').value.trim().toLowerCase();
+  const skills = classSkills(currentCls).filter(s => {
+    if (!kw) return true;
+    return (s.zh + ' ' + s.en + ' ' + (s.jp||'')).toLowerCase().includes(kw);
+  });
+  const scored = skills.map(s => ({s, sc: scoreSkill(s, currentCls, currentArch)})).sort((a,b)=>b.sc.score-a.sc.score);
+  const rankOf = {};
+  scored.forEach((x, i) => rankOf[x.s.id] = i + 1);
+  const topN = 60;
+  const shown = kw ? scored : scored.slice(0, topN);
+  document.getElementById(cid).innerHTML = shown.map(({s, sc}) => {
+    const icon = D.icons[s.id] || '';
+    const y = sc.recCount || null;
+    return `
+    <div class="pick-row" data-id="${s.id}">
+      ${icon ? `<img class="pick-icon" src="${icon}" alt="${s.zh}" loading="lazy">` : `<div class="si-ph" style="width:36px;height:36px;font-size:16px">${s.zh.slice(0,1)}</div>`}
+      <div class="pick-info">
+        <span class="sp-zh">${s.zh}</span><span class="sp-en">${s.en}</span>
+        <span class="pick-rank" style="${sc.status==='done'?'color:var(--text-dim)':sc.status==='warn'?'color:var(--accent2)':sc.status==='bad'?'color:var(--red)':'color:var(--blue)'}">#${rankOf[s.id]}${sc.status==='done'?' ✓':''}</span>
+      </div>
+      <div class="pick-actions">
+        ${(state[s.id]||0) ? `<span class="pick-layers">×${state[s.id]}</span>` : ''}
+        <button class="btn-add" data-add="${s.id}">＋ 加点</button>
+      </div>
+      <div class="si-tip">${tooltipHtml(s, sc, y)}</div>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-dim);padding:10px">无匹配技能。</p>';
+  document.querySelectorAll(`#${cid} [data-add]`).forEach(btn => btn.onclick = () => {
+    state[btn.dataset.add] = (state[btn.dataset.add]||0) + 1;
+    renderAll();
+    if (cid === 'smPicker') { /* 手机端：详情中加减才关，直接点＋也关一次搜索弹窗 */ closeSearchModal(); }
+  });
+  // 触屏：点击搜索行打开详情弹窗（桌面端行点击不设行为，靠 hover+按钮）
+  if (isTouch) {
+    document.querySelectorAll(`#${cid} .pick-row[data-id]`).forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.classList.contains('btn-add')) return;
+        openDetail(el.dataset.id, cid === 'smPicker');
+      });
+    });
+  }
+  if (!kw && cid === 'skillPicker') document.getElementById(cid).insertAdjacentHTML('afterbegin', `<div class="tip" style="margin:0 8px 8px">显示前 ${topN} 个技能（按当前优先级排序），输入关键词可搜索全部。</div>`);
+}
+
+// ---------- 三商店分组（点位） ----------
+// 显示顺序：时空法师（上）→ 机动之晶 → 忍耐之晶（下）
+const SHOP_GROUPS = [
+  { id:'chrono', name:'时空法师（伤害/暴击/元素 + 职业专属）', en:'Chrono Wizard' },
+  { id:'mobility', name:'机动之晶（机动）', en:'Crystal of Mobility' },
+  { id:'perseverance', name:'忍耐之晶（生存）', en:'Crystal of Perseverance' },
+];
+function groupOf(s) { return s.shopId === 'class' ? 'chrono' : s.shopId; }
+
+// ---------- 渲染：当前加点列表（图标网格 + x/y 角标 + hover 详情） ----------
+function tooltipHtml(s, sc, y) {
+  // 流派专属说明：该技能在当前职业+流派下的定位
+  const b = buildOf(currentCls, currentArch);
+  const brec = b ? (b.must.find(x=>x.id===s.id) || b.nice.find(x=>x.id===s.id) || b.avoid.find(x=>x.id===s.id)) : null;
+  const btier = b && b.must.find(x=>x.id===s.id) ? 'must' : b && b.nice.find(x=>x.id===s.id) ? 'nice' : b && b.avoid.find(x=>x.id===s.id) ? 'avoid' : null;
+  const stTxt = sc.status==='done'?'<span style="color:var(--green)">✓ 已达标</span>'
+    : sc.status==='warn'?'<span style="color:var(--accent2)">⚠ 接近软上限</span>'
+    : sc.status==='bad'?'<span style="color:var(--red)">✗ 不推荐/互斥</span>'
+    : (y ? `<span style="color:var(--accent)">${state[s.id]||0}/${y} 层</span>` : `<span style="color:var(--accent)">${state[s.id]||0} 层</span>`);
+  let html = `<div style="font-size:12.5px;line-height:1.55">
+    <b>${s.zh}</b> <span style="color:var(--text-dim);font-size:11px">${s.en}</span><br>
+    <span class="rar rar-${s.rarity}">${s.rarity}</span> <span style="color:var(--text-dim);font-size:11px">${s.shopId==='class'?'职业专属':'通用'} · ${s.stack||''}</span> · ${stTxt}<br>
+    <span style="color:var(--text-dim)">${s.descZh}</span>`;
+  // 流派专属定位（优先于通用备注）
+  if (b && brec) {
+    const tierTxt = btier==='must'?'🔴 构筑必须':btier==='nice'?'🟡 构筑可选':'⚫ 构筑不推荐';
+    const targetTxt = brec.count ? `（目标 ×${brec.count}）` : '';
+    html += `<br><span style="color:var(--blue)">【${b.archetype}】${tierTxt}${targetTxt}：${brec.reason}</span>`;
+  } else if (s.notes) {
+    html += `<br><span style="color:var(--text-dim);font-size:11.5px">💡 ${s.notes}</span>`;
+  }
+  if (s.notes && b && brec) {
+    html += `<br><span style="color:var(--text-dim);font-size:11px">💡 ${s.notes}</span>`;
+  }
+  html += `<br><span style="color:var(--text-dim);font-size:11px">点击图标 +1 层，点左上 − 减层</span></div>`;
+  return html;
+}
+
+function renderState() {
+  const skills = classSkills(currentCls);
+  const rows = skills.filter(s => (state[s.id]||0) > 0);
+  const b = buildOf(currentCls, currentArch);
+  document.getElementById('stateCount').textContent = `· 已加 ${rows.reduce((a,s)=>a+state[s.id],0)} 层 / ${rows.length} 个技能`;
+  if (!rows.length) {
+    document.getElementById('stateTable').innerHTML = '<p style="color:var(--text-dim)">还没有加点 — 在左侧搜索技能并点击「＋ 加点」开始。</p>';
+    return;
+  }
+  let html = '';
+  SHOP_GROUPS.forEach(g => {
+    const grp = rows.filter(s => groupOf(s) === g.id);
+    if (!grp.length) return;
+    html += `<h3 class="group-title">${g.name} <span class="en">${g.en}</span></h3><div class="icon-grid">`;
+    grp.forEach(s => {
+      const sc = scoreSkill(s, currentCls, currentArch);
+      const rec = b ? (b.must.find(x=>x.id===s.id)||b.nice.find(x=>x.id===s.id)) : null;
+      const y = rec && rec.count ? rec.count : null;
+      const icon = D.icons[s.id] || '';
+      const badgeCls = sc.status==='done'?'ok':sc.status==='warn'?'warn':sc.status==='bad'?'bad':'';
+      html += `<div class="skill-icon" data-id="${s.id}">
+        ${icon ? `<img src="${icon}" alt="${s.zh}" loading="lazy">` : `<div class="si-ph">${s.zh.slice(0,1)}</div>`}
+        <span class="si-badge ${badgeCls}">${state[s.id]}${y?`/${y}`:''}</span>
+        <button class="si-minus" data-dec="${s.id}" title="减 1 层">−</button>
+        <div class="si-tip">${tooltipHtml(s, sc, y)}</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('stateTable').innerHTML = html;
+  // 点击图标：桌面 = +1 层（右键 = -1）；触屏 = 打开详情弹窗（弹窗内加减）
+  document.querySelectorAll('.skill-icon[data-id]').forEach(el => {
+    const id = el.dataset.id;
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('si-minus')) return;
+      if (isTouch) { openDetail(id, false); return; }
+      state[id] = (state[id]||0) + 1;
+      renderAll();
+    });
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      state[id] = Math.max(0, (state[id]||0) - 1);
+      renderAll();
+    });
+  });
+  document.querySelectorAll('[data-dec]').forEach(bn => bn.onclick = () => { state[bn.dataset.dec] = Math.max(0,(state[bn.dataset.dec]||0)-1); renderAll(); });
+}
+
+// ---------- 渲染：优先级排序（三列 = 三商店；色环绿→红表示优先级） ----------
+function renderPrio() {
+  const skills = classSkills(currentCls);
+  const scored = skills.map(s => ({s, ...scoreSkill(s, currentCls, currentArch)})).sort((a,b) => b.score - a.score);
+  const total = scored.length;
+  document.getElementById('modeLabel').textContent = `（共 ${total} 个该职业可选技能，按三个商店分列；色环：🔴紧缺 → 🟡一般 → 🟢低需/已完成；已达标不展示）`;
+  const rankOf = id => scored.findIndex(x => x.s.id === id) + 1;
+  // 色环颜色：分数 100(红) → 0(绿)；done 固定绿
+  const ringColor = x => x.status==='done' ? 'hsl(120,55%,42%)' : `hsl(${Math.round((1 - x.score/100) * 120)}, 65%, 45%)`;
+  const row = x => {
+    const y = x.recCount || null;
+    const icon = D.icons[x.s.id] || '';
+    const cur = state[x.s.id] || 0;
+    const badgeCls = cur > 0 ? 'hot' : (x.score >= 70 ? 'hot' : '');
+    return `
+    <div class="prio-item" data-id="${x.s.id}">
+      <div class="prio-ring" style="background:${ringColor(x)}">${rankOf(x.s.id)}</div>
+      ${icon ? `<img class="prio-icon" src="${icon}" alt="${x.s.zh}" loading="lazy">` : `<div class="si-ph" style="width:34px;height:34px;font-size:15px">${x.s.zh.slice(0,1)}</div>`}
+      <div class="prio-name2">${x.s.zh}<span class="en">${x.s.en}</span></div>
+      <span class="si-badge ${badgeCls}">${cur}${y?`/${y}`:''}</span>
+      <div class="si-tip">${tooltipHtml(x.s, x, y)}</div>
+    </div>`;
+  };
+  let html = '<div class="prio-cols">';
+  SHOP_GROUPS.forEach(g => {
+    const grp = scored.filter(x => groupOf(x.s) === g.id);
+    const added = grp.filter(x => (state[x.s.id]||0) > 0 && x.status !== 'done');  // 未达标已加点
+    const rest = grp.filter(x => !(state[x.s.id]||0)).slice(0, 9);
+    const done = grp.filter(x => x.status === 'done');  // 已达标排最底
+    html += `<div class="prio-col${isTouch&&prioActiveTab===g.id?' active':''}" data-g="${g.id}"><h4>${g.name} <span class="en">${g.en}</span></h4>` +
+      (added.length ? added.map(row).join('') : '') +
+      rest.map(row).join('') +
+      (done.length ? `<div class="prio-done-hd">✓ 已达标</div>` + done.map(row).join('') : '') +
+      '</div>';
+  });
+  html += '</div>';
+  document.getElementById('prioList').innerHTML = html;
+  renderPrioTabs();
+  // 优先级行交互：桌面左键 +1 / 右键 -1；触屏点击打开详情弹窗（弹窗内加减）
+  let lastCtx = 0;
+  document.querySelectorAll('.prio-item[data-id]').forEach(el => {
+    const id = el.dataset.id;
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      lastCtx = Date.now();
+      state[id] = Math.max(0, (state[id]||0) - 1);
+      renderAll();
+    });
+    el.addEventListener('click', e => {
+      if (Date.now() - lastCtx < 600) return;  // 长按后松开的 click 忽略
+      if (isTouch) { openDetail(id, false); return; }
+      state[id] = (state[id]||0) + 1;
+      renderAll();
+    });
+  });
+}
+
+// ---------- 渲染：下一步建议 ----------
+function renderNext() {
+  const b = buildOf(currentCls, currentArch);
+  let html = '';
+  if (b) {
+    const missing = b.must.filter(m => m.count && (state[m.id]||0) < m.count);
+    const soft = b.must.filter(m => !m.count && !(state[m.id]||0));
+    if (missing.length) {
+      html += `<p>🎯 <b>流派 Build 缺口</b>（有明确层数的必须项未达标）：</p><ul style="padding-left:20px">`;
+      missing.forEach(m => { const n = nameOf(m.id); html += `<li><b>${n.zh}</b> <span class="en">${n.en}</span> — 当前 ${state[m.id]||0} / 目标 ${m.count} 层（${m.reason}）</li>`; });
+      html += `</ul>`;
+    } else html += `<p>✅ 该流派 Build 必须项（有明确层数者）已全部达标。</p>`;
+    if (soft.length) {
+      html += `<p style="margin-top:6px">📌 <b>按需项</b>（无固定层数目标，视对局与溢出点数取舍）：</p><ul style="padding-left:20px">`;
+      soft.forEach(m => { const n = nameOf(m.id); html += `<li><b>${n.zh}</b> <span class="en">${n.en}</span> — ${m.reason}</li>`; });
+      html += `</ul>`;
+    }
+  }
+  const skills = classSkills(currentCls);
+  const scored = skills.map(s => ({s, ...scoreSkill(s, currentCls, currentArch)})).sort((a,b)=>b.score-a.score);
+  const top = scored.filter(x => x.status !== 'done' && x.score >= 70).slice(0, 5);
+  if (top.length) {
+    html += `<p style="margin-top:10px">🔜 <b>接下来最值得点的 5 个</b>：</p><ol style="padding-left:20px">`;
+    top.forEach(x => { const n = nameOf(x.s.id); html += `<li><b>${n.zh}</b> <span class="en">${n.en}</span> — ${x.reasons.join('；')||''}</li>`; });
+    html += `</ol>`;
+  }
+  document.getElementById('nextStep').innerHTML = html || '<p style="color:var(--text-dim)">选择职业后查看建议。</p>';
+}
+
+function renderAll() {
+  if (!currentCls) return;
+  renderPicker();
+  renderState();
+  renderPrio();
+  renderNext();
+}
+
+// ---------- 全局悬浮详情弹窗（body 级，避免被列表 overflow 裁剪） ----------
+let tipEl = null;
+function ensureTip() {
+  if (!tipEl) {
+    tipEl = document.createElement('div');
+    tipEl.className = 'global-tip';
+    document.body.appendChild(tipEl);
+  }
+  return tipEl;
+}
+function showTip(html, anchor) {
+  const t = ensureTip();
+  t.innerHTML = html;
+  t.style.display = 'block';
+  const tw = t.offsetWidth, th = t.offsetHeight;
+  let left = anchor.left + anchor.width / 2 - tw / 2;
+  let top = anchor.top - th - 10;
+  if (left < 8) left = 8;
+  if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
+  if (top < 8) top = anchor.bottom + 10;  // 上方放不下则显示在下方
+  if (top + th > window.innerHeight - 8) top = window.innerHeight - th - 8;
+  t.style.left = left + 'px';
+  t.style.top = top + 'px';
+}
+function hideTip() { if (tipEl) tipEl.style.display = 'none'; }
+document.addEventListener('mouseover', e => {
+  const cont = e.target.closest('.pick-row, .prio-item, .skill-icon');
+  if (cont) {
+    const tip = cont.querySelector('.si-tip');
+    if (tip && tip.textContent.trim()) showTip(tip.innerHTML, cont.getBoundingClientRect());
+  } else hideTip();
+});
+window.addEventListener('scroll', hideTip, true);
+
+// ---------- 移动端弹窗交互 ----------
+const isTouch = (('ontouchstart' in window) || navigator.maxTouchPoints > 0) || location.search.includes('touch=1');
+if (isTouch) document.body.classList.add('touch-mode');
+let dmSkillId = null;      // 详情弹窗当前技能
+let dmFromSearch = false;  // 详情是否由搜索弹窗打开
+
+function skillById(id) {
+  for (const s of classSkills(currentCls)) if (s.id === id) return s;
+  return null;
+}
+function openDetail(id, fromSearch) {
+  const s = skillById(id);
+  if (!s) return;
+  dmSkillId = id; dmFromSearch = !!fromSearch;
+  renderDetail();
+  document.getElementById('detailModal').classList.add('show');
+}
+function renderDetail() {
+  const s = skillById(dmSkillId);
+  if (!s) return;
+  const sc = scoreSkill(s, currentCls, currentArch);
+  const b = buildOf(currentCls, currentArch);
+  const rec = b ? (b.must.find(x=>x.id===s.id)||b.nice.find(x=>x.id===s.id)) : null;
+  const y = rec && rec.count ? rec.count : null;
+  document.getElementById('dmBody').innerHTML = tooltipHtml(s, sc, y);
+  document.getElementById('dmCount').textContent = `${state[s.id]||0}${y?`/${y}`:''}`;
+}
+function closeDetail() { document.getElementById('detailModal').classList.remove('show'); dmSkillId = null; }
+
+// 搜索弹窗（手机端）
+function openSearchModal() {
+  document.getElementById('searchModal').classList.add('show');
+  document.getElementById('smKw').value = '';
+  renderPicker('smPicker');
+}
+function closeSearchModal() { document.getElementById('searchModal').classList.remove('show'); }
+
+// 优先级选项卡（手机端：点击切换三商店）
+let prioActiveTab = 'chrono';
+function renderPrioTabs() {
+  document.getElementById('prioTabs').innerHTML = SHOP_GROUPS.map(g =>
+    `<button data-tab="${g.id}" class="${g.id===prioActiveTab?'active':''}">${g.name.split('（')[0]}</button>`).join('');
+  document.querySelectorAll('#prioTabs button').forEach(btn => btn.onclick = () => {
+    prioActiveTab = btn.dataset.tab;
+    renderPrioTabs();
+    document.querySelectorAll('#prioList .prio-col').forEach(c => c.classList.toggle('active', c.dataset.g === prioActiveTab));
+  });
+}
+// 渲染优先级时给列打上 tab 标记
+const _origPrioColHtml = null;
+
+// ---------- 事件 ----------
+clsSel.onchange = () => {
+  currentCls = clsSel.value;
+  state = {};
+  fillArchetypes();
+  renderAll();
+};
+archSel.onchange = () => { currentArch = archSel.value; renderAll(); };
+document.getElementById('skillKw').oninput = () => renderPicker('skillPicker');
+document.getElementById('btnReset').onclick = () => { state = {}; renderAll(); };
+document.getElementById('btnApplyBuild').onclick = () => {
+  const b = buildOf(currentCls, currentArch);
+  if (!b) return;
+  state = {};
+  b.must.forEach(m => { if (m.count) state[m.id] = m.count; });
+  b.nice.forEach(m => { if (m.count) state[m.id] = m.count; });
+  renderAll();
+};
+
+// ---------- 移动端事件 ----------
+document.getElementById('searchTrigger').onclick = openSearchModal;
+document.getElementById('smClose').onclick = closeSearchModal;
+document.getElementById('smKw').oninput = () => {
+  if (!document.getElementById('smKw').value.trim()) closeSearchModal();  // 清空自动关闭
+  else renderPicker('smPicker');
+};
+// 搜索 Tab 切换
+const TAB_LABEL = { skill:'🔍 搜索技能，点「＋」加点（可叠多层）', rune:'符文（保留最近 2 个，选第 3 个自动顶掉最旧的；槽位倍率 ×1/×2）', curse:'符文诅咒（保留最近 2 个，选第 3 个自动顶掉最旧的；倍率 ×1/×2）', artifact:'神器（每小局获得 1 个、可重复，加成跨小局持续累积；点击 +1，上限 12）' };
+document.querySelectorAll('#pickerTabs button').forEach(btn => btn.onclick = () => {
+  pickerTab = btn.dataset.tab;
+  document.querySelectorAll('#pickerTabs button').forEach(b => b.classList.toggle('active', b === btn));
+  document.getElementById('pickerLabel').textContent = TAB_LABEL[pickerTab];
+  const kw = document.getElementById('skillKw');
+  kw.value = '';
+  renderPicker('skillPicker');
+  renderPicker('smPicker');
+});
+// 当前属性
+document.getElementById('btnStats').onclick = renderStatsModal;
+document.getElementById('statsClose').onclick = () => document.getElementById('statsModal').classList.remove('show');
+document.getElementById('statsModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('statsModal')) document.getElementById('statsModal').classList.remove('show');
+});
+document.getElementById('dmPlus').onclick = () => {
+  if (!dmSkillId) return;
+  state[dmSkillId] = (state[dmSkillId]||0) + 1;
+  renderDetail(); renderAll();
+  if (dmFromSearch) closeSearchModal();  // 搜索弹窗中加点后自动关闭
+};
+document.getElementById('dmMinus').onclick = () => {
+  if (!dmSkillId) return;
+  state[dmSkillId] = Math.max(0, (state[dmSkillId]||0) - 1);
+  renderDetail(); renderAll();
+  if (dmFromSearch) closeSearchModal();
+};
+document.getElementById('dmClose').onclick = closeDetail;
+document.getElementById('detailModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('detailModal')) closeDetail();  // 点遮罩关闭
+});
+
+// ---------- 初始化 ----------
+const q = new URLSearchParams(location.search).get('cls');
+currentCls = (q && D.classes.some(c=>c.id===q)) ? q : D.classes[0].id;
+clsSel.value = currentCls;
+fillArchetypes();
+renderAll();
+</script>
+</body>
+</html>

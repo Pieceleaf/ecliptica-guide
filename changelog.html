@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>版本日志 - Ecliptica 日蚀攻略站</title>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
+    <a class="navlink" href="index.html">首页</a>
+    <a class="navlink" href="classes.html">职业</a>
+    <a class="navlink" href="upgrades.html">升级图鉴</a>
+    <a class="navlink" href="builds.html">Build 参考</a>
+    <a class="navlink" href="simulator.html">加点模拟器</a>
+    <a class="navlink" href="stats.html">属性上限</a>
+    <a class="navlink active" href="changelog.html">版本日志</a>
+    <span class="ver-tag" id="verTag"></span>
+  </nav>
+</header>
+<main>
+  <div class="page-head">
+    <h1>版本更新日志</h1>
+    <p>整理自日文 wiki「アップデート内容一覧」（更新至 2026-08-03）。Build 与加点建议请对照当前版本阅读。</p>
+  </div>
+  <div id="logList"></div>
+
+  <div class="card">
+    <h2>v0.51 对 Build 的影响（攻略站解读）</h2>
+    <table>
+      <tr><th>职业</th><th>影响</th></tr>
+      <tr><td>咒术师（书奶）</td><td><b>明显削弱</b>：自我治疗 CD 慢 75%、兴奋剂自我上限 3 层、熟练 CD 缩短 10%。单书奶被 Boss 锁基本必死，建议双书奶互保；毒面相仍不推荐。</td></tr>
+      <tr><td>法锤士</td><td><b>投掷流加强</b>：熟练新增爆炸伤害（核爆锤核心），主宰上限 5+2；主手 110→90 削弱纯普攻流。推荐投掷流。</td></tr>
+      <tr><td>双法师</td><td>圣光手 50→35 削弱，但仍是最高基础数值；光法地位不变。</td></tr>
+      <tr><td>枪术士</td><td>光子凝聚器熟练 +1→+2 弹加强；蓄力流更顺。</td></tr>
+      <tr><td>拳法师</td><td>激昂急速上限 10+2/层，跑者削弱；格挡爆发流仍是核心。</td></tr>
+      <tr><td>盾法师</td><td>盾冲 CD 恢复 4 秒；守望者惩罚 100%→50%（仍不推荐）；不坏+熟练坦度路线不变。</td></tr>
+      <tr><td>猫术士</td><td>图腾猫回血变慢且不叠加——单猫奶保人能力下降；僵尸猫暗伤 25 加强输出。</td></tr>
+      <tr><td>全局</td><td>狂战魂拆近战/远程；第三定律对拳法师格挡生效；Boss 开门全队回满血（容错提升）；单排背水一战/献祭羔羊消失。</td></tr>
+    </table>
+  </div>
+</main>
+<nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class=""><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class=""><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class="active"><span class="bn-ico">📜</span>日志</a></nav>
+
+<footer>
+  Ecliptica 日蚀攻略站 · 更新日志来源：wikiwiki.jp アップデート内容一覧 · 非官方粉丝站<br>
+  数据更新至 v0.51（2026-07-29）
+</footer>
+<script src="data.js"></script>
+<script>
+const D = ECLIPTICA_DATA;
+document.getElementById('verTag').textContent = D.meta.version;
+document.getElementById('logList').innerHTML = D.changelog.map(v => `
+  <div class="card">
+    <h2>${v.version} <span style="font-size:13px;color:var(--text-dim)">${v.date} · ${v.title}</span></h2>
+    ${v.items.map(g => `
+      <h3>${g.zh}（${g.cls}）</h3>
+      <ul style="padding-left:20px; font-size:14px">${g.items.map(i => `<li>${i}</li>`).join('')}</ul>
+    `).join('')}
+  </div>`).join('');
+</script>
+</body>
+</html>
