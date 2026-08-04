@@ -23,7 +23,7 @@
 <main>
   <div class="page-head">
     <h1>升级图鉴（技能 ↔ 点位查询）</h1>
-    <p>3 个商店点位（世界狭间 NPC）：<b>忍耐之晶</b>（生存）、<b>机动之晶</b>（机动）、<b>时空法师</b>（伤害/暴击/元素 + 各职业专属升级）。表格可按商店、稀有度、关键词筛选；技能名保留中/英/日三语，游戏内按英文名对照。</p>
+    <p>3 个商店点位（世界狭间 NPC）：<b>忍耐之晶</b>（生存）、<b>机动之晶</b>（机动）、<b>时空法师</b>（攻击属性 + 各职业专属升级）。可按商店、稀有度、关键词筛选；技能名保留中/英/日三语，游戏内按英文名对照。</p>
   </div>
 
   <div class="card">
@@ -43,12 +43,7 @@
       <input type="text" id="kw" class="search-box" placeholder="🔍 搜索技能名（中/英/日）或效果关键词…" style="flex:1; margin-bottom:0">
     </div>
     <div style="overflow-x:auto">
-    <table id="skillTable">
-      <thead>
-        <tr><th>点位</th><th>稀有度</th><th>技能</th><th>效果</th><th>备注</th><th>标签</th></tr>
-      </thead>
-      <tbody id="skillBody"></tbody>
-    </table>
+    <div id="skillGrid" class="upg-grid"></div>
     </div>
     <div id="countInfo" class="tip" style="margin-top:10px"></div>
   </div>
@@ -93,15 +88,25 @@ function render() {
     }
     return true;
   });
-  document.getElementById('skillBody').innerHTML = rows.map(s => `
-    <tr>
-      <td>${s.classId ? `<span class="tag" style="border-color:var(--accent2);color:var(--accent2)">${s.classZh}</span>` : ''}<b>${s.shopZh}</b><span class="en">${s.shopEn}</span></td>
-      <td><span class="rar rar-${s.rarity}">${s.rarity}</span></td>
-      <td><b>${esc(s.zh)}</b><span class="en">${esc(s.en)}</span><span class="jp">${esc(s.jp||'')}</span> <img src="${D.icons[s.id]||''}" class="upg-icon" alt="" loading="lazy"></td>
-      <td>${esc(s.descZh)}</td>
-      <td>${esc(s.notes||'')}</td>
-      <td>${(s.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</td>
-    </tr>`).join('');
+  document.getElementById('skillGrid').innerHTML = rows.map(s => `
+    <div class="upg-card">
+      <div class="upg-head">
+        <img src="${D.icons[s.id]||''}" class="upg-icon" alt="" loading="lazy">
+        <div class="upg-names">
+          <b>${esc(s.zh)}</b> <span class="en">${esc(s.en)}</span><span class="jp">${esc(s.jp||'')}</span>
+        </div>
+        <span class="rar rar-${s.rarity}">${s.rarity}</span>
+      </div>
+      <div class="upg-effect">${esc(s.descZh)}</div>
+      ${s.notes ? `<div class="upg-note">${esc(s.notes)}</div>` : ''}
+      <div class="upg-meta">
+        ${s.classId ? `<span class="tag" style="border-color:var(--accent2);color:var(--accent2)">${s.classZh}</span>` : ''}
+        <span class="tag">${s.shopZh}</span>
+        ${(s.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}
+      </div>
+    </div>`).join('');
+  // 备注点击展开/收起
+  document.querySelectorAll('.upg-note').forEach(n => n.onclick = () => n.classList.toggle('open'));
   document.getElementById('countInfo').textContent = `共 ${rows.length} 个技能（通用 ${D.shops.reduce((a,s)=>a+s.skills.length,0)} + 职业专属 ${D.classes.reduce((a,c)=>a+(D.class_upgrades[c.id]||[]).length,0)}）`;
 }
 shopSel.onchange = render; rarFilter.onchange = render; clsSel.onchange = render;

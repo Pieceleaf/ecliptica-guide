@@ -90,8 +90,26 @@ td .en { color: var(--text-dim); font-size: 12px; display: block; }
 td .jp { color: var(--text-dim); font-size: 11px; opacity: .8; display: block; }
 
 /* 稀有度 */
-.rar { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
-.upg-icon { width: 34px; height: 34px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg3); object-fit: contain; padding: 2px; vertical-align: middle; margin-left: 6px; }
+.rar { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+/* 升级图鉴卡片流 */
+.upg-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+@media (max-width: 900px) { .upg-grid { grid-template-columns: minmax(0,1fr); } }
+.upg-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.upg-icon { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg3); object-fit: contain; padding: 3px; flex-shrink: 0; }
+.upg-head { display: flex; align-items: center; gap: 10px; }
+.upg-names { flex: 1; min-width: 0; }
+.upg-names b { font-size: 14px; }
+.upg-names .en { color: var(--text-dim); font-size: 11px; margin-left: 4px; }
+.upg-names .jp { color: var(--text-dim); font-size: 11px; margin-left: 4px; }
+.upg-effect { margin-top: 7px; font-size: 13px; color: var(--text); line-height: 1.5; }
+.upg-note {
+  margin-top: 5px; font-size: 12px; color: var(--text-dim); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  cursor: pointer; border-left: 2px solid var(--border); padding-left: 8px;
+}
+.upg-note.open { -webkit-line-clamp: unset; }
+.upg-meta { margin-top: 7px; display: flex; gap: 6px; flex-wrap: wrap; }
+.upg-meta .tag { font-size: 11px; }
 .rar-Common { color: var(--common); border: 1px solid var(--common); }
 .rar-Rare { color: var(--rare); border: 1px solid var(--rare); }
 .rar-Legendary { color: var(--legendary); border: 1px solid var(--legendary); }
