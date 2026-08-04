@@ -68,7 +68,6 @@
         <button id="btnStats" style="background:rgba(86,156,255,.15);border:1px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:6px;cursor:pointer">📊 当前属性</button>
       </div>
       <div id="shareBanner" class="share-banner" style="display:none"></div>
-      <div class="tip" style="margin-top:10px">「一键填充」把当前流派 Build 的必须/准必须项填到推荐层数，方便对照你的实际加点差距。</div>
     </div>
 
     <!-- 右：结果 -->
@@ -141,12 +140,27 @@
 <div class="detail-modal" id="saveModal">
   <div class="dm-box">
     <h3 style="margin-bottom:10px">💾 保存为自定义 Build</h3>
-    <input id="saveName" class="search-box" placeholder="给这个 Build 起个名字…" style="margin-bottom:10px">
+    <input id="saveName" class="search-box" placeholder="Build 名称（必填）" style="margin-bottom:10px">
+    <textarea id="saveNote" class="search-box" placeholder="备注说明（可选，如加点思路/适用场景）" style="margin-bottom:10px;min-height:64px;resize:vertical"></textarea>
     <div style="display:flex;gap:8px">
       <button id="saveConfirm" style="flex:1;background:rgba(240,180,41,.15);border:1px solid var(--accent);color:var(--accent);padding:8px;border-radius:8px;cursor:pointer">保存</button>
       <button id="saveCancel" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text-dim);padding:8px;border-radius:8px;cursor:pointer">取消</button>
     </div>
     <div class="tip" style="margin-top:8px">保存在<b>浏览器本地缓存</b>（localStorage），仅当前浏览器有效，可跨次访问使用。</div>
+  </div>
+</div>
+
+<!-- 分享 Build 弹窗（名称/备注可选） -->
+<div class="detail-modal" id="shareModal">
+  <div class="dm-box">
+    <h3 style="margin-bottom:10px">🔗 生成分享链接</h3>
+    <input id="shareName" class="search-box" placeholder="Build 名称（可选，默认当前流派名）" style="margin-bottom:10px">
+    <textarea id="shareNote" class="search-box" placeholder="备注说明（可选，随链接一起分享）" style="margin-bottom:10px;min-height:64px;resize:vertical"></textarea>
+    <div style="display:flex;gap:8px">
+      <button id="shareConfirm" style="flex:1;background:rgba(240,180,41,.15);border:1px solid var(--accent);color:var(--accent);padding:8px;border-radius:8px;cursor:pointer">生成并复制</button>
+      <button id="shareCancel" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text-dim);padding:8px;border-radius:8px;cursor:pointer">取消</button>
+    </div>
+    <div class="tip" style="margin-top:8px">名称 ≤20 汉字 / 40 字母；备注 ≤140 汉字 / 200 字母。</div>
   </div>
 </div>
 
@@ -197,7 +211,7 @@ function loadCustomBuilds() {
 function saveCustomBuilds() {
   try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(customBuilds)); } catch(e) {}
 }
-function saveCurrentAsCustom(name, shareSig) {
+function saveCurrentAsCustom(name, note, shareSig) {
   const cur = buildOf(currentCls, currentArch);
   const must = [];
   let totalLayers = 0;
@@ -213,7 +227,7 @@ function saveCurrentAsCustom(name, shareSig) {
   customBuilds.push({
     archetypeId: id, classId: currentCls, archetype: name, title: name,
     patch: '自定义', source: '本地自定义（浏览器缓存）',
-    note: `基于「${cur ? cur.archetype : '无'}」保存的自定义方案，保存于 ${new Date().toLocaleDateString()}。共 ${totalLayers} 层 / ${must.length} 项。`,
+    note: (note || '').trim() || `基于「${cur ? cur.archetype : '无'}」保存的自定义方案（${totalLayers} 层 / ${must.length} 项）。`,
     must, nice: [], avoid: [],
     runes: runeOrder.slice(),                     // 符文槽（含顺序倍率）
     artifacts: Object.entries(artifactState).filter(([,n])=>n>0),  // 神器（id, 层数）
@@ -230,9 +244,12 @@ function deleteCustomBuild(id) {
 }
 
 // ---------- 自定义 Build 分享密文（E1 格式：纯文本高效压缩） ----------
-// E1.{clsIdx36}.{nameURI}.{skillIdx*count,...}.{runeIdx,...}.{artIdx*count,...}
+// E1.{clsIdx36}.{nameURI}.{skillIdx*count,...}.{runeIdx,...}.{artIdx*count,...}.{noteURI}
 // 技能索引 = 按该职业 classSkills() 顺序（通用 0-61 + 职业专属 62+），层数用 base36 单字符（≤35 层）
-function encodeShareBuild() {
+// 长度校验：汉字/全角计 2，半角计 1（名称 ≤40 = 20 汉字/40 字母；备注 ≤280 = 140 汉字/200 字母）
+function textLen(s) { return (s || '').split('').reduce((a, ch) => a + (/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/.test(ch) ? 2 : 1), 0); }
+function validShareText(v, max) { return !v || textLen(v) <= max; }
+function encodeShareBuild(name, note) {
   const skills = classSkills(currentCls);
   const idxOf = {}; skills.forEach((s, i) => idxOf[s.id] = i);
   const skillParts = [];
@@ -242,13 +259,14 @@ function encodeShareBuild() {
     skillParts.push(i.toString(36) + Math.min(n, 35).toString(36));
   }
   const cur = buildOf(currentCls, currentArch);
-  const name = cur ? cur.archetype : '分享的 Build';
+  const nm = (name || '').trim() || (cur ? cur.archetype : '分享的 Build');
   const clsIdx = D.classes.findIndex(c => c.id === currentCls);
   const runeParts = runeOrder.map(rid => D.runes.findIndex(r => r.id === rid).toString(36));
   const artParts = Object.entries(artifactState).filter(([, n]) => n > 0)
     .map(([aid, n]) => D.artifacts.findIndex(a => a.id === aid).toString(36) + Math.min(n, 35).toString(36));
-  return ['E1', clsIdx.toString(36), encodeURIComponent(name),
-    skillParts.join(','), runeParts.join(','), artParts.join(',')].join('.');
+  return ['E1', clsIdx.toString(36), encodeURIComponent(nm),
+    skillParts.join(','), runeParts.join(','), artParts.join(','),
+    note ? encodeURIComponent(note) : ''].join('.');
 }
 function decodeShareBuild(s) {
   try {
@@ -270,7 +288,9 @@ function decodeShareBuild(s) {
       const a = D.artifacts[parseInt(t.slice(0, -1), 36)];
       if (a) arts[a.id] = parseInt(t.slice(-1), 36);
     });
-    return { cls, name, state: stateMap, runes, artifacts: arts };
+    let note = '';
+    if (p.length >= 7 && p[6]) { try { note = decodeURIComponent(p[6]); } catch(e) { note = ''; } }
+    return { cls, name, state: stateMap, runes, artifacts: arts, note };
   } catch (e) { return null; }
 }
 function applySharedBuild(decoded, sig) {
@@ -286,6 +306,7 @@ function applySharedBuild(decoded, sig) {
   const total = Object.values(decoded.state).reduce((a, n) => a + n, 0);
   document.getElementById('shareBanner').innerHTML = `
     <div class="sb-line"><b>📋 分享的 Build：${decoded.name}</b> <span style="color:var(--text-dim)">${decoded.cls.zh} · ${Object.keys(decoded.state).length} 项 / ${total} 层 ${decoded.runes.length ? '· 符文 ' + decoded.runes.length : ''} ${Object.keys(decoded.artifacts).length ? '· 神器 ' + Object.keys(decoded.artifacts).length : ''}</span></div>
+    ${decoded.note ? `<div class="sb-note">${decoded.note}</div>` : ''}
     <div class="sb-actions">
       <button id="sbSave" ${already ? 'disabled style="opacity:.6"' : ''}>${already ? '✅ 已保存' : '💾 保存到本地'}</button>
       <button id="sbClose">✕ 关闭</button>
@@ -293,13 +314,11 @@ function applySharedBuild(decoded, sig) {
   document.getElementById('shareBanner').style.display = 'block';
   const saveBtn = document.getElementById('sbSave');
   if (saveBtn && !already) saveBtn.onclick = () => {
-    const r = saveCurrentAsCustom(decoded.name, sig);
-    if (r.ok) {
-      saveBtn.textContent = '✅ 已保存';
-      saveBtn.disabled = true; saveBtn.style.opacity = '.6';
-      document.getElementById('saveName').value = '';
-      fillArchetypes(); renderAll();
-    } else alert(r.msg);
+    // 打开保存弹窗，预填导入的名称/备注（可修改）
+    document.getElementById('saveName').value = decoded.name;
+    document.getElementById('saveNote').value = decoded.note || '';
+    document.getElementById('saveModal').dataset.shareSig = sig;
+    document.getElementById('saveModal').classList.add('show');
   };
   document.getElementById('sbClose').onclick = () => document.getElementById('shareBanner').style.display = 'none';
 }
@@ -351,14 +370,37 @@ function renderBuildModal() {
     </div>`;
   document.getElementById('buildModalList').innerHTML =
     bs.map(opt).join('') + (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义（本浏览器保存）—</div>` + cs.map(opt).join('') : '');
-  document.querySelectorAll('#buildModalList .build-opt').forEach(el => el.onclick = (e) => {
-    if (e.target.classList.contains('b-opt-del')) {
-      deleteCustomBuild(e.target.dataset.del);
-      if (currentArch === e.target.dataset.del) { currentArch = buildsOf(currentCls)[0] ? buildsOf(currentCls)[0].archetypeId : null; }
-      fillArchetypes(); renderAll(); renderBuildModal();
-      return;
+  document.querySelectorAll('#buildModalList .build-opt').forEach(el => {
+    // 长按删除（触屏 600ms；桌面保留 🗑 按钮）
+    if (el.dataset.id.startsWith('custom_')) {
+      let pressTimer = null;
+      el.addEventListener('touchstart', e => {
+        if (e.target.classList.contains('b-opt-del')) return;
+        pressTimer = setTimeout(() => {
+          const b = customBuilds.find(x => x.archetypeId === el.dataset.id);
+          if (b && confirm(`删除自定义 Build「${b.archetype}」？`)) {
+            deleteCustomBuild(el.dataset.id);
+            if (currentArch === el.dataset.id) { currentArch = buildsOf(currentCls)[0] ? buildsOf(currentCls)[0].archetypeId : null; }
+            fillArchetypes(); renderAll(); renderBuildModal();
+          }
+        }, 600);
+      });
+      el.addEventListener('touchend', () => clearTimeout(pressTimer));
+      el.addEventListener('touchmove', () => clearTimeout(pressTimer));
+      el.addEventListener('touchcancel', () => clearTimeout(pressTimer));
     }
-    selectBuild(el.dataset.id);
+    el.onclick = (e) => {
+      if (e.target.classList.contains('b-opt-del')) {
+        const b = customBuilds.find(x => x.archetypeId === e.target.dataset.del);
+        if (b && confirm(`删除自定义 Build「${b.archetype}」？`)) {
+          deleteCustomBuild(e.target.dataset.del);
+          if (currentArch === e.target.dataset.del) { currentArch = buildsOf(currentCls)[0] ? buildsOf(currentCls)[0].archetypeId : null; }
+          fillArchetypes(); renderAll(); renderBuildModal();
+        }
+        return;
+      }
+      selectBuild(el.dataset.id);
+    };
   });
 }
 function selectBuild(archId) {
@@ -652,9 +694,9 @@ function renderPicker(cid) {
 // ---------- 三商店分组（点位） ----------
 // 显示顺序：时空法师（上）→ 机动之晶 → 忍耐之晶（下）
 const SHOP_GROUPS = [
-  { id:'chrono', name:'时空法师（攻击属性 + 职业专属）', en:'Chrono Wizard' },
-  { id:'mobility', name:'机动之晶（机动）', en:'Crystal of Mobility' },
-  { id:'perseverance', name:'忍耐之晶（生存）', en:'Crystal of Perseverance' },
+  { id:'chrono', name:'时空法师', en:'Chrono Wizard' },
+  { id:'mobility', name:'机动之晶', en:'Crystal of Mobility' },
+  { id:'perseverance', name:'忍耐之晶', en:'Crystal of Perseverance' },
 ];
 function groupOf(s) { return s.shopId === 'class' ? 'chrono' : s.shopId; }
 
@@ -740,7 +782,7 @@ function renderPrio() {
   const skills = classSkills(currentCls);
   const scored = skills.map(s => ({s, ...scoreSkill(s, currentCls, currentArch)})).sort((a,b) => b.score - a.score);
   const total = scored.length;
-  document.getElementById('modeLabel').textContent = `（共 ${total} 个该职业可选技能，按三个商店分列；色环：🔴紧缺 → 🟡一般 → 🟢低需/已完成；已达标不展示）`;
+  document.getElementById('modeLabel').textContent = '';
   const rankOf = id => scored.findIndex(x => x.s.id === id) + 1;
   // 色环颜色：分数 100(红) → 0(绿)；done 固定绿
   const ringColor = x => x.status==='done' ? 'hsl(120,55%,42%)' : `hsl(${Math.round((1 - x.score/100) * 120)}, 65%, 45%)`;
@@ -983,6 +1025,76 @@ document.querySelectorAll('#pickerTabs button, #smTabs button').forEach(btn => b
   renderPicker('skillPicker');
   renderPicker('smPicker');
 });
+// 保存自定义 Build
+document.getElementById('btnSaveCustom').onclick = () => {
+  document.getElementById('saveName').value = '';
+  document.getElementById('saveNote').value = '';
+  delete document.getElementById('saveModal').dataset.shareSig;
+  document.getElementById('saveModal').classList.add('show');
+};
+document.getElementById('saveCancel').onclick = () => document.getElementById('saveModal').classList.remove('show');
+document.getElementById('saveConfirm').onclick = () => {
+  const name = document.getElementById('saveName').value.trim();  // 首尾空格自动删除
+  if (!name) { alert('Build 名称不能为空，请输入名称后再保存。'); return; }  // 不可留空/全空格
+  const note = document.getElementById('saveNote').value.trim();  // 备注可选，无长度限制
+  const sig = document.getElementById('saveModal').dataset.shareSig || null;
+  const r = saveCurrentAsCustom(name, note, sig);
+  if (r.ok) {
+    document.getElementById('saveModal').classList.remove('show');
+    document.getElementById('saveName').value = '';
+    document.getElementById('saveNote').value = '';
+    // 若从分享导入保存：锁定横幅按钮
+    if (sig) {
+      const sb = document.getElementById('sbSave');
+      if (sb) { sb.textContent = '✅ 已保存'; sb.disabled = true; sb.style.opacity = '.6'; }
+    }
+    fillArchetypes();
+    // 选中刚保存的自定义（含恢复符文/神器）
+    currentArch = r.id;
+    archSel.value = r.id;
+    renderArchBadge(); renderAll();
+  } else {
+    alert(r.msg);
+  }
+};
+document.getElementById('saveModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('saveModal')) document.getElementById('saveModal').classList.remove('show');
+});
+
+// 分享链接（名称/备注可选，长度受限）
+document.getElementById('btnShare').onclick = () => {
+  const total = Object.values(state).reduce((a, n) => a + n, 0);
+  if (total < 21) { alert(`分享需要至少 21 点加点（当前 ${total} 点）。`); return; }
+  const cur = buildOf(currentCls, currentArch);
+  document.getElementById('shareName').value = cur ? cur.archetype : '';
+  document.getElementById('shareNote').value = '';
+  document.getElementById('shareModal').classList.add('show');
+};
+document.getElementById('shareCancel').onclick = () => document.getElementById('shareModal').classList.remove('show');
+document.getElementById('shareConfirm').onclick = () => {
+  const name = document.getElementById('shareName').value.trim();
+  const note = document.getElementById('shareNote').value.trim();
+  if (!validShareText(name, 40)) { alert('分享名称过长：不超过 20 个汉字或 40 个英文字母。'); return; }
+  if (!validShareText(note, 280)) { alert('分享备注过长：不超过 140 个汉字或 200 个英文字母。'); return; }
+  const code = encodeShareBuild(name, note);
+  // code 字符集（字母数字 % . , =）全部 URL 安全，直接拼接（不再二次编码，保证 ?b= 取出与 sig 完全一致）
+  const url = location.origin + location.pathname + '?b=' + code;
+  document.getElementById('shareModal').classList.remove('show');
+  // 复制到剪贴板（兼容手机/电脑）
+  copyText(url).then(ok => {
+    const linkBox = document.getElementById('shareBanner');
+    linkBox.innerHTML = `<div class="sb-line">${ok ? '✅ 分享链接已复制' : '⚠️ 自动复制失败，请长按/手动复制下方链接：'}</div>
+      <div class="sb-link">${url}</div>
+      <div class="sb-actions"><button id="sbCopy2">📋 再复制一次</button><button id="sbClose">✕ 关闭</button></div>`;
+    linkBox.style.display = 'block';
+    document.getElementById('sbCopy2').onclick = () => copyText(url).then(ok2 => { if (ok2) document.getElementById('sbCopy2').textContent = '✅ 已复制'; });
+    document.getElementById('sbClose').onclick = () => linkBox.style.display = 'none';
+  });
+};
+document.getElementById('shareModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('shareModal')) document.getElementById('shareModal').classList.remove('show');
+});
+
 // 当前属性
 document.getElementById('btnStats').onclick = renderStatsModal;
 document.getElementById('statsClose').onclick = () => document.getElementById('statsModal').classList.remove('show');
@@ -1033,25 +1145,6 @@ function fallbackCopy(text) {
     return ok;
   } catch (e) { return false; }
 }
-
-// 分享链接（密文）
-document.getElementById('btnShare').onclick = () => {
-  const total = Object.values(state).reduce((a, n) => a + n, 0);
-  if (total < 21) { alert(`分享需要至少 21 点加点（当前 ${total} 点）。`); return; }
-  const code = encodeShareBuild();
-  // code 字符集（字母数字 % . , =）全部 URL 安全，直接拼接（不再二次编码，保证 ?b= 取出与 sig 完全一致）
-  const url = location.origin + location.pathname + '?b=' + code;
-  // 复制到剪贴板（兼容手机/电脑）
-  copyText(url).then(ok => {
-    const linkBox = document.getElementById('shareBanner');
-    linkBox.innerHTML = `<div class="sb-line">${ok ? '✅ 分享链接已复制' : '⚠️ 自动复制失败，请长按/手动复制下方链接：'}</div>
-      <div class="sb-link">${url}</div>
-      <div class="sb-actions"><button id="sbCopy2">📋 再复制一次</button><button id="sbClose">✕ 关闭</button></div>`;
-    linkBox.style.display = 'block';
-    document.getElementById('sbCopy2').onclick = () => copyText(url).then(ok2 => { if (ok2) document.getElementById('sbCopy2').textContent = '✅ 已复制'; });
-    document.getElementById('sbClose').onclick = () => linkBox.style.display = 'none';
-  });
-};
 
 // 初始化：支持分享链接 ?b=密文（必须在 loadCustomBuilds 之后）
 function initSharedUrl() {
