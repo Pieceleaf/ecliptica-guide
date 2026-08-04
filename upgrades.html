@@ -7,7 +7,7 @@
 <title>游戏图鉴 - Ecliptica 日蚀攻略站</title>
 <link rel="stylesheet" href="style.css?v=5">
 </head>
-<body>
+<body class="upg-page">
 <header>
   <nav class="nav">
     <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
@@ -26,14 +26,14 @@
     <h1>游戏图鉴</h1>
   </div>
 
-  <div class="card">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+  <div class="card upg-shell">
+    <div id="upgTabs" class="upg-tabs">
       <button id="tabSkills" class="upg-tab active">技能</button>
       <button id="tabBosses" class="upg-tab">BOSS</button>
       <button id="tabEnemies" class="upg-tab">怪物</button>
     </div>
     <div id="skillsPanel">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+    <div id="skillFilters" class="skill-filters" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
       <select id="shopFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;min-width:0">
         <option value="all">全部商店</option>
       </select>
@@ -48,10 +48,12 @@
         <option value="common">通用</option>
       </select>
     </div>
-    <div class="search-with-clear">
+    <button id="filterTrigger" class="filter-trigger" type="button">⚙ 筛选（已选 0）</button>
+    <div class="search-with-clear upg-search-sticky">
       <input type="text" id="kw" class="search-box" placeholder="🔍 搜索技能名（中/英/日）或效果关键词…">
       <button id="clearKw" class="clear-search" type="button" aria-label="清除技能关键词">×</button>
     </div>
+    <div id="activeFilterChips" class="active-filter-chips"></div>
     <div style="overflow-x:auto">
     <div id="skillGrid" class="upg-grid"></div>
     </div>
@@ -61,6 +63,17 @@
     <div id="enemiesPanel" style="display:none"></div>
   </div>
 </main>
+<div class="detail-modal" id="filterDrawer">
+  <div class="dm-box">
+    <div class="dm-handle"></div>
+    <h3 style="margin-bottom:10px">⚙ 技能筛选</h3>
+    <div id="filterDrawerBody"></div>
+    <div class="filter-drawer-actions">
+      <button id="filterReset" class="dm-cancel">重置</button>
+      <button id="filterView" class="dm-ok">查看 0 条</button>
+    </div>
+  </div>
+</div>
 <nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class="active"><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class=""><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
 
 <footer>
@@ -77,6 +90,19 @@ const shopSel = document.getElementById('shopFilter');
 D.shops.forEach(s => shopSel.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.zh}（${s.en}）</option>`));
 const clsSel = document.getElementById('clsFilter');
 D.classes.forEach(c => clsSel.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.zh}（${c.en}）</option>`));
+const rarSel = document.getElementById('rarFilter');
+const urlState = new URLSearchParams(location.search);
+let currentTab = ['skills','bosses','enemies'].includes(urlState.get('tab')) ? urlState.get('tab') : 'skills';
+let bossKw = urlState.get('boss') || '';
+let enemyKw = urlState.get('enemy') || '';
+let visibleCount = 40;
+const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const mobileMode = isTouch || window.matchMedia('(max-width: 768px)').matches;
+document.body.classList.toggle('mobile-mode', mobileMode);
+if (['all','Common','Rare','Legendary'].includes(urlState.get('rar'))) rarSel.value = urlState.get('rar');
+if (urlState.get('shop') && [...shopSel.options].some(o => o.value === urlState.get('shop'))) shopSel.value = urlState.get('shop');
+if (urlState.get('class') && [...clsSel.options].some(o => o.value === urlState.get('class'))) clsSel.value = urlState.get('class');
+document.getElementById('kw').value = urlState.get('q') || '';
 
 // 展平所有技能：通用 + 职业专属
 function allSkills() {
@@ -88,6 +114,67 @@ function allSkills() {
 const SKILLS = allSkills();
 
 function esc(t){return (t||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function syncUrl() {
+  const p = new URLSearchParams();
+  if (currentTab !== 'skills') p.set('tab', currentTab);
+  const q = document.getElementById('kw').value.trim();
+  if (q) p.set('q', q);
+  if (shopSel.value !== 'all') p.set('shop', shopSel.value);
+  if (rarSel.value !== 'all') p.set('rar', rarSel.value);
+  if (clsSel.value !== 'all') p.set('class', clsSel.value);
+  if (bossKw.trim()) p.set('boss', bossKw.trim());
+  if (enemyKw.trim()) p.set('enemy', enemyKw.trim());
+  const query = p.toString();
+  history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
+}
+function selectedFilterCount() {
+  return [shopSel.value, rarSel.value, clsSel.value].filter(v => v !== 'all').length;
+}
+function filterLabel(kind, value) {
+  if (value === 'all') return '全部';
+  if (kind === 'shop') { const s = D.shops.find(x => x.id === value); return s ? s.zh : value; }
+  if (kind === 'class') { if (value === 'common') return '通用'; const c = D.classes.find(x => x.id === value); return c ? c.zh : value; }
+  return {Common:'Common 普通', Rare:'Rare 稀有', Legendary:'Legendary 传说'}[value] || value;
+}
+function renderFilterDrawer() {
+  const groups = [
+    ['shop', '商店', [['all','全部'], ...D.shops.map(s => [s.id, s.zh])]],
+    ['rar', '稀有度', [['all','全部'], ['Common','Common 普通'], ['Rare','Rare 稀有'], ['Legendary','Legendary 传说']]],
+    ['class', '职业', [['all','全部'], ['common','通用'], ...D.classes.map(c => [c.id, c.zh])]]
+  ];
+  document.getElementById('filterDrawerBody').innerHTML = groups.map(([kind, title, values]) => `
+    <section class="filter-group"><h4>${title}</h4><div class="filter-chips">${values.map(([value, label]) => `<button class="filter-chip ${(kind==='shop'?shopSel.value:kind==='rar'?rarSel.value:clsSel.value)===value?'active':''}" data-filter-kind="${kind}" data-filter-value="${value}">${label}</button>`).join('')}</div></section>`).join('');
+  document.querySelectorAll('#filterDrawer [data-filter-kind]').forEach(btn => btn.onclick = () => {
+    const input = btn.dataset.filterKind === 'shop' ? shopSel : btn.dataset.filterKind === 'rar' ? rarSel : clsSel;
+    input.value = btn.dataset.filterValue;
+    resetSkillPaging(); render(); renderFilterDrawer();
+  });
+  const count = selectedFilterCount();
+  document.getElementById('filterTrigger').textContent = `⚙ 筛选（已选 ${count}）`;
+  document.getElementById('filterView').textContent = `查看 ${filteredSkillCount()} 条`;
+  document.getElementById('activeFilterChips').innerHTML = groups.flatMap(([kind, title]) => {
+    const input = kind === 'shop' ? shopSel : kind === 'rar' ? rarSel : clsSel;
+    return input.value === 'all' ? [] : [`<button class="active-filter-chip" data-chip-kind="${kind}">${title}：${filterLabel(kind, input.value)} ×</button>`];
+  }).join('');
+  document.querySelectorAll('[data-chip-kind]').forEach(btn => btn.onclick = () => {
+    (btn.dataset.chipKind === 'shop' ? shopSel : btn.dataset.chipKind === 'rar' ? rarSel : clsSel).value = 'all';
+    resetSkillPaging(); render(); renderFilterDrawer();
+  });
+}
+function filteredSkillCount() {
+  const shop = shopSel.value, rar = rarSel.value, cls = clsSel.value;
+  const kw = document.getElementById('kw').value.replace(/\s+/g, '').toLowerCase();
+  return SKILLS.filter(s => {
+    if (shop !== 'all' && s.shopId !== shop) return false;
+    if (rar !== 'all' && s.rarity !== rar) return false;
+    if (cls === 'common' ? s.classId : cls !== 'all' && s.classId !== cls) return false;
+    if (kw && !(s.zh + ' ' + s.en + ' ' + s.jp + ' ' + s.descZh + ' ' + (s.notes||'')).replace(/\s+/g,'').toLowerCase().includes(kw)) return false;
+    return true;
+  }).length;
+}
+function resetSkillPaging() { visibleCount = 40; }
+function openFilterDrawer() { renderFilterDrawer(); document.getElementById('filterDrawer').classList.add('show'); document.body.classList.add('modal-open'); }
+function closeFilterDrawer() { document.getElementById('filterDrawer').classList.remove('show'); document.body.classList.remove('modal-open'); }
 function emptyState(kind) {
   return `<div class="empty-state"><p>没有匹配结果</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button data-empty-action="clear-${kind}">清除关键词</button><button data-empty-action="reset-${kind}">重置筛选</button></div></div>`;
 }
@@ -105,14 +192,14 @@ function bindEmptyActions() {
     }
     if (action === 'clear-boss' || action === 'reset-boss') { bossKw = ''; document.getElementById('bossKw').value = ''; }
     if (action === 'clear-enemy' || action === 'reset-enemy') { enemyKw = ''; document.getElementById('enemyKw').value = ''; }
-    if (action.includes('skill')) render();
+    if (action.includes('skill')) { resetSkillPaging(); render(); }
     if (action.includes('boss')) renderBosses();
     if (action.includes('enemy')) renderEnemies();
   });
 }
 
 function render() {
-  const shop = shopSel.value, rar = rarFilter.value, cls = clsSel.value;
+  const shop = shopSel.value, rar = rarSel.value, cls = clsSel.value;
   const kw = document.getElementById('kw').value.replace(/\s+/g, '').toLowerCase();
   let rows = SKILLS.filter(s => {
     if (shop !== 'all' && s.shopId !== shop) return false;
@@ -125,7 +212,8 @@ function render() {
     }
     return true;
   });
-  document.getElementById('skillGrid').innerHTML = rows.length ? rows.map(s => `
+  const visibleRows = rows.slice(0, visibleCount);
+  document.getElementById('skillGrid').innerHTML = rows.length ? visibleRows.map(s => `
     <div class="upg-card">
       <div class="upg-head">
         <img src="${D.icons[s.id]||''}" class="upg-icon" alt="" loading="lazy">
@@ -141,12 +229,17 @@ function render() {
         <span class="tag">${s.shopZh}</span>
         ${(s.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}
       </div>
-    </div>`).join('') : emptyState('skill');
+    </div>`).join('') + (visibleRows.length < rows.length ? `<button id="loadMoreSkills" class="load-more">加载更多（剩余 ${rows.length - visibleRows.length} 项）</button>` : '') : emptyState('skill');
   // 备注点击展开/收起
   document.querySelectorAll('.upg-note').forEach(n => n.onclick = () => n.classList.toggle('open'));
-  document.getElementById('countInfo').textContent = `显示 ${rows.length} / ${SKILLS.length}`;
+  document.getElementById('countInfo').textContent = `显示 ${visibleRows.length} / ${rows.length}（总计 ${SKILLS.length}）`;
   syncClearButton(document.getElementById('kw'), document.getElementById('clearKw'));
+  document.getElementById('filterTrigger').textContent = `⚙ 筛选（已选 ${selectedFilterCount()}）`;
+  renderFilterDrawer();
   bindEmptyActions();
+  const loadMore = document.getElementById('loadMoreSkills');
+  if (loadMore) loadMore.onclick = () => { visibleCount += 40; render(); };
+  syncUrl();
 }
 // 搜索框防抖 + 焦点保持（移动端 IME 输入大列表重渲染时防失焦）
 function bindSearchInput(input, fn) {
@@ -160,9 +253,17 @@ function bindSearchInput(input, fn) {
     }, 120);
   });
 }
-bindSearchInput(document.getElementById('kw'), render);
-document.getElementById('clearKw').onclick = () => { document.getElementById('kw').value = ''; render(); };
-shopSel.onchange = render; rarFilter.onchange = render; clsSel.onchange = render;
+bindSearchInput(document.getElementById('kw'), () => { resetSkillPaging(); render(); });
+document.getElementById('clearKw').onclick = () => { document.getElementById('kw').value = ''; resetSkillPaging(); render(); };
+shopSel.onchange = () => { resetSkillPaging(); render(); };
+rarSel.onchange = () => { resetSkillPaging(); render(); };
+clsSel.onchange = () => { resetSkillPaging(); render(); };
+document.getElementById('filterTrigger').onclick = openFilterDrawer;
+document.getElementById('filterReset').onclick = () => {
+  shopSel.value = 'all'; rarSel.value = 'all'; clsSel.value = 'all'; resetSkillPaging(); render(); renderFilterDrawer();
+};
+document.getElementById('filterView').onclick = closeFilterDrawer;
+document.getElementById('filterDrawer').addEventListener('click', e => { if (e.target === document.getElementById('filterDrawer')) closeFilterDrawer(); });
 render();
 
 // ---------- Boss / 小怪图鉴 ----------
@@ -173,7 +274,7 @@ function affChip(a, val) {
   const st = val.status === 'WEAK' ? 'weak' : val.status === 'RESIST' ? 'resist' : 'neutral';
   return `<span class="aff aff-${st}" title="${a}">${elemName(a)} <b>${val.status==='WEAK'?'×1.25 弱点':val.status==='RESIST'?'×0.7 抗性':'×1'}</b></span>`;
 }
-let bossKw = '', bossOpen = null;
+let bossOpen = null;
 function renderBosses() {
   const panel = document.getElementById('bossesPanel');
   // 骨架（提示+搜索框）只创建一次——输入框节点保持稳定，避免失焦
@@ -182,6 +283,7 @@ function renderBosses() {
       <div class="search-with-clear"><input type="text" id="bossKw" class="search-box" placeholder="🔍 搜索 Boss（名称/称号/机制/攻略）…"><button id="clearBossKw" class="clear-search" type="button" aria-label="清除 Boss 关键词">×</button></div>
       <div id="bossCount" class="tip"></div><div id="bossList"></div>`;
     const kw = document.getElementById('bossKw');
+    kw.value = bossKw;
     bindSearchInput(kw, () => { bossKw = kw.value; renderBosses(); });
     document.getElementById('clearBossKw').onclick = () => { bossKw = ''; kw.value = ''; renderBosses(); };
   }
@@ -193,7 +295,7 @@ function renderBosses() {
       <div class="upg-head">
         <img src="${b.icon}" class="upg-icon" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
         <div class="upg-names"><b>${esc(b.name)}</b>${b.desc ? `<span class="en">${esc(b.desc)}</span>` : ''}</div>
-        <span class="rar rar-Legendary">${esc(b.phase||'')}</span>
+        <span class="rar rar-Legendary">${esc(b.phase||'')}</span><span class="expand-chevron">${bossOpen === b.id ? '⌃' : '⌄'}</span>
       </div>
       ${bossOpen === b.id ? bossDetail(b) : ''}
     </div>`).join('') + `</div>`;
@@ -205,6 +307,7 @@ function renderBosses() {
     bossOpen = bossOpen === card.dataset.boss ? null : card.dataset.boss;
     renderBosses();
   });
+  syncUrl();
 }
 function bossDetail(b) {
   return `
@@ -221,7 +324,7 @@ function bossDetail(b) {
       ${b.strategy ? `<div class="upg-note">📜 英文原文（wiki）：${esc(b.strategy.replace(/\n+/g,' ').slice(0,300))}${b.strategy.length>300?'…':''}</div>` : ''}
     </div>`;
 }
-let enemyKw = '';
+let enemyOpen = null;
 function renderEnemies() {
   const panel = document.getElementById('enemiesPanel');
   // 骨架（提示+搜索框）只创建一次——输入框节点保持稳定，避免失焦
@@ -232,12 +335,33 @@ function renderEnemies() {
       <div id="enemyList"></div>
       <div id="enemyBossRel"></div>`;
     const kw = document.getElementById('enemyKw');
+    kw.value = enemyKw;
     bindSearchInput(kw, () => { enemyKw = kw.value; renderEnemies(); });
     document.getElementById('clearEnemyKw').onclick = () => { enemyKw = ''; kw.value = ''; renderEnemies(); };
   }
   // 注意：不回写输入框 value（用户输入原样保留，避免吞空格）
   const nk = enemyKw.replace(/\s+/g, '').toLowerCase();
   const es = (D.enemies||[]).filter(e => !nk || (e.name + ' ' + (e.damage||'') + ' ' + (e.debuffs||[]).join('') + ' ' + (e.mech||[]).join('')).replace(/\s+/g, '').toLowerCase().includes(nk));
+  const enemyTags = e => [
+    e.damage ? `<span class="tag enemy-tag damage">伤害：${esc(e.damage)}</span>` : '',
+    ...(e.debuffs||[]).map(d => `<span class="tag enemy-tag debuff">异常：${esc(d)}</span>`),
+    ...(e.mech||[]).map(m => `<span class="tag enemy-tag mech">机制：${esc(m)}</span>`)
+  ].join('');
+  const enemyCard = (e, key, bossName) => {
+    const open = enemyOpen === key;
+    return `<div class="upg-card enemy-card ${open ? 'open' : ''}" data-enemy="${esc(key)}" style="cursor:pointer">
+      <div class="upg-head">
+        <img src="${e.icon}" class="upg-icon" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="upg-names"><b>${esc(e.name)}</b>${bossName ? `<span class="en">${esc(bossName)}</span>` : ''}</div>
+        <span class="rar">${esc(e.phase||'')}</span><span class="expand-chevron">${open ? '⌃' : '⌄'}</span>
+      </div>
+      <div class="upg-meta enemy-summary-tags">${enemyTags(e)}</div>
+      ${open ? `<div class="enemy-detail">
+        ${e.mech?.length ? `<div class="boss-sec"><h4>⚙ 机制</h4><p>${esc(e.mech.join('；'))}</p></div>` : ''}
+        ${e.tips ? `<div class="boss-sec"><h4>🛡 应对攻略</h4><p>${esc(e.tips)}</p></div>` : ''}
+      </div>` : ''}
+    </div>`;
+  };
   const card = e => `
     <div class="upg-card">
       <div class="upg-head">
@@ -265,12 +389,19 @@ function renderEnemies() {
       ${e.tips ? `<div class="boss-sec" style="margin-top:6px"><h4>🛡 应对</h4><p>${esc(e.tips)}</p></div>` : ''}
     </div>`).join('') + `</div>` : '';
   document.getElementById('enemyCount').textContent = `显示 ${es.length} / ${(D.enemies||[]).length}`;
-  document.getElementById('enemyList').innerHTML = es.length ? `<div class="upg-grid">` + es.map(card).join('') + `</div>` : emptyState('enemy');
-  document.getElementById('enemyBossRel').innerHTML = bossRelHtml;
+  document.getElementById('enemyList').innerHTML = es.length ? `<div class="upg-grid">` + es.map(e => enemyCard(e, `enemy:${e.id}`, '')).join('') + `</div>` : emptyState('enemy');
+  const compactBossRel = bossRel.length ? `<h3 style="margin:16px 0 8px;font-size:15px">⚔ Boss 相关敌人（Boss 战中召唤）</h3><div class="upg-grid">` + bossRel.map(e => enemyCard(e, `boss:${e.id}:${e.boss||''}`, e.boss)).join('') + `</div>` : '';
+  document.getElementById('enemyBossRel').innerHTML = compactBossRel;
   syncClearButton(document.getElementById('enemyKw'), document.getElementById('clearEnemyKw'));
   bindEmptyActions();
+  document.querySelectorAll('.enemy-card').forEach(card => card.onclick = () => {
+    enemyOpen = enemyOpen === card.dataset.enemy ? null : card.dataset.enemy;
+    renderEnemies();
+  });
+  syncUrl();
 }
 function switchTab(t) {
+  currentTab = t;
   document.querySelectorAll('.upg-tab').forEach(b => b.classList.remove('active'));
   document.getElementById('tabSkills').classList.toggle('active', t === 'skills');
   document.getElementById('tabBosses').classList.toggle('active', t === 'bosses');
@@ -280,11 +411,12 @@ function switchTab(t) {
   document.getElementById('enemiesPanel').style.display = t === 'enemies' ? '' : 'none';
   if (t === 'bosses') renderBosses();
   if (t === 'enemies') renderEnemies();
+  syncUrl();
 }
 document.getElementById('tabSkills').onclick = () => switchTab('skills');
 document.getElementById('tabBosses').onclick = () => switchTab('bosses');
 document.getElementById('tabEnemies').onclick = () => switchTab('enemies');
-switchTab('skills');
+switchTab(currentTab);
 </script>
 <script src="site.js"></script>
 </body>

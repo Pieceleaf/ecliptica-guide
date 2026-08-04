@@ -7,7 +7,7 @@
 <title>Build 参考 - Ecliptica 日蚀攻略站</title>
 <link rel="stylesheet" href="style.css?v=5">
 </head>
-<body>
+<body class="build-page">
 <header>
   <nav class="nav">
     <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
@@ -26,6 +26,11 @@
     <h1>Build 参考</h1>
   </div>
 
+  <div id="buildSummary" class="build-selection-summary">
+    <div id="buildSummaryText">选择职业与 Build</div>
+    <button id="buildChangeBtn" type="button">更换</button>
+  </div>
+
   <nav id="buildTabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px"></nav>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
     <span style="color:var(--text-dim);font-size:13px">🌐 社区分享 Build 来自 <b style="color:var(--accent)">Ecliptica 中文支部</b>（VRCT 客户端共享加点方案）：VRChat 群组 <a href="https://vrc.group/GAME.0421" target="_blank" style="color:var(--blue)">vrc.group/GAME.0421</a> · QQ 群 <b style="color:var(--accent)">614460762</b></span>
@@ -34,6 +39,13 @@
 
   <div id="buildList"></div>
 </main>
+<div id="buildDrawer" class="detail-modal">
+  <div class="dm-box">
+    <div class="dm-handle"></div>
+    <div id="buildDrawerContent"></div>
+  </div>
+</div>
+<div id="buildCtaBar" class="build-cta-bar"></div>
 <footer>
   Ecliptica 日蚀攻略站 · Build 来源：日文wiki build页 + B站社区实战 · 非官方粉丝站<br>
   数据更新至 v0.51（2026-07-29）
@@ -50,9 +62,35 @@ const skillName = id => {
   for (const c of D.classes) for (const sk of (D.class_upgrades[c.id]||[])) if (sk.id === id) return {zh:sk.zh, en:sk.en};
   return {zh:id, en:''};
 };
+const skillIcon = id => D.icons && D.icons[id] ? D.icons[id] : '';
 
 let currentCls = null;
 let currentArch = null;
+let drawerLayer = 'class';
+let drawerSource = 'guide';
+const mobileMode = ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || window.matchMedia('(max-width: 768px)').matches;
+document.body.classList.toggle('mobile-mode', mobileMode);
+
+function syncBuildUrl() {
+  const p = new URLSearchParams();
+  if (currentCls === '__custom__') p.set('custom', '1');
+  else if (currentCls) p.set('cls', currentCls);
+  if (currentArch) p.set('arch', currentArch);
+  const query = p.toString();
+  history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
+}
+
+function updateBuildSummary() {
+  const target = document.getElementById('buildSummaryText');
+  if (!target) return;
+  if (currentCls === '__custom__') target.textContent = `自定义 Build${customBuilds.length ? ` · ${customBuilds.length} 个` : ''}`;
+  else if (!currentCls) target.textContent = '选择职业与 Build';
+  else {
+    const c = D.classes.find(x => x.id === currentCls);
+    const b = currentArch ? buildOf2(currentCls, currentArch) : null;
+    target.textContent = b ? `${c.zh} · ${b.archetype}` : `${c.zh} · 请选择流派`;
+  }
+}
 
 // 自定义 Build（与模拟器同 key 的 localStorage）
 const CUSTOM_KEY = 'ecliptica_custom_builds_v1';
@@ -107,11 +145,14 @@ function renderClsBar() {
       document.getElementById('archTabs').innerHTML = '';
       document.getElementById('buildList').innerHTML = '';
       renderClsBar();
+      syncBuildUrl();
+      updateBuildSummary();
       return;
     }
     // 选择职业：收起其他职业，展开该职业全部流派
     currentCls = btn.dataset.cls;
     currentArch = null;
+    syncBuildUrl();
     renderClsBar();
     if (currentCls === '__custom__') {
       document.getElementById('archTabs').innerHTML = '';
@@ -144,17 +185,22 @@ function fillArchTabs(expanded) {
       currentArch = null;
       fillArchTabs(true);
       renderBuild();
+      syncBuildUrl();
       return;
     }
     // 选择流派：收起其他流派，显示详情
     currentArch = btn.dataset.arch;
     fillArchTabs(false);
     renderBuild();
+    syncBuildUrl();
   });
 }
 
 // 自定义 Build 栏目：全部自定义方案列表
 function renderCustomList() {
+  document.getElementById('buildCtaBar').style.display = 'none';
+  updateBuildSummary();
+  syncBuildUrl();
   document.getElementById('archTabs').innerHTML = '';
   if (!customBuilds.length) {
     document.getElementById('buildList').innerHTML = `<div class="card"><h2>✏️ 自定义 Build</h2>
@@ -194,9 +240,68 @@ function renderCustomList() {
   });
 }
 
+function closeBuildDrawer() {
+  document.getElementById('buildDrawer').classList.remove('show');
+  document.body.classList.remove('modal-open');
+}
+function openBuildDrawer() {
+  drawerLayer = 'class';
+  renderBuildDrawer();
+  document.getElementById('buildDrawer').classList.add('show');
+  document.body.classList.add('modal-open');
+}
+function renderBuildDrawer() {
+  const target = document.getElementById('buildDrawerContent');
+  const back = drawerLayer === 'class' ? '' : `<button class="dm-cancel" data-drawer-back="${drawerLayer === 'arch' ? 'source' : 'class'}">← 返回</button>`;
+  let html = `<div class="build-drawer-head">${back}<h3>${drawerLayer === 'class' ? '选择职业' : drawerLayer === 'source' ? '选择来源' : '选择 Build'}</h3><button class="dm-cancel" data-drawer-close>关闭</button></div>`;
+  if (drawerLayer === 'class') {
+    html += `<div class="build-drawer-options"><button class="build-drawer-option ${currentCls === '__custom__' ? 'active' : ''}" data-drawer-cls="__custom__">⚙ 自定义 Build</button>${D.classes.map(c => `<button class="build-drawer-option ${currentCls === c.id ? 'active' : ''}" data-drawer-cls="${c.id}">${c.zh}<span>${c.en}</span></button>`).join('')}</div>`;
+  } else if (drawerLayer === 'source') {
+    const guide = D.builds.filter(b => b.classId === currentCls);
+    const community = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
+    const custom = currentCls === '__custom__' ? customBuilds : customBuilds.filter(b => b.classId === currentCls);
+    html += `<div class="build-drawer-options">${guide.length ? `<button class="build-drawer-option ${drawerSource === 'guide' ? 'active' : ''}" data-drawer-source="guide">📖 图鉴推荐<span>${guide.length} 个 Build</span></button>` : ''}${community.length ? `<button class="build-drawer-option ${drawerSource === 'community' ? 'active' : ''}" data-drawer-source="community">🤝 社区分享<span>${community.length} 个 Build</span></button>` : ''}${custom.length ? `<button class="build-drawer-option ${drawerSource === 'custom' ? 'active' : ''}" data-drawer-source="custom">⚙ 自定义<span>${custom.length} 个 Build</span></button>` : ''}</div>`;
+  } else {
+    let options = [];
+    if (drawerSource === 'guide') options = D.builds.filter(b => b.classId === currentCls);
+    if (drawerSource === 'community') options = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
+    if (drawerSource === 'custom') options = currentCls === '__custom__' ? customBuilds : customBuilds.filter(b => b.classId === currentCls);
+    html += `<div class="build-drawer-options">${options.map(b => `<button class="build-drawer-option ${currentArch === b.archetypeId ? 'active' : ''}" data-drawer-arch="${b.archetypeId}">${b.archetype}<span>${b.title||b.source||''}</span></button>`).join('')}</div>`;
+  }
+  target.innerHTML = html;
+  target.querySelectorAll('[data-drawer-close]').forEach(btn => btn.onclick = closeBuildDrawer);
+  target.querySelectorAll('[data-drawer-back]').forEach(btn => btn.onclick = () => { drawerLayer = btn.dataset.drawerBack; renderBuildDrawer(); });
+  target.querySelectorAll('[data-drawer-cls]').forEach(btn => btn.onclick = () => {
+    currentCls = btn.dataset.drawerCls;
+    currentArch = null;
+    syncBuildUrl();
+    renderClsBar();
+    if (currentCls === '__custom__') { drawerSource = 'custom'; drawerLayer = 'source'; renderBuildDrawer(); }
+    else { drawerSource = 'guide'; drawerLayer = 'source'; renderBuild(); renderBuildDrawer(); }
+  });
+  target.querySelectorAll('[data-drawer-source]').forEach(btn => btn.onclick = () => {
+    drawerSource = btn.dataset.drawerSource;
+    drawerLayer = 'arch';
+    currentArch = null;
+    renderBuildDrawer();
+  });
+  target.querySelectorAll('[data-drawer-arch]').forEach(btn => btn.onclick = () => {
+    currentArch = btn.dataset.drawerArch;
+    if (drawerSource === 'custom') { renderCustomList(); closeBuildDrawer(); return; }
+    renderBuild();
+    fillArchTabs(false);
+    syncBuildUrl();
+    closeBuildDrawer();
+  });
+}
+document.getElementById('buildChangeBtn').onclick = openBuildDrawer;
+document.getElementById('buildDrawer').addEventListener('click', e => { if (e.target.id === 'buildDrawer') closeBuildDrawer(); });
+
 function renderBuild() {
   const b = buildOf2(currentCls, currentArch);
   if (!b) {
+    document.getElementById('buildCtaBar').style.display = 'none';
+    updateBuildSummary();
     document.getElementById('buildList').innerHTML = currentCls
       ? `<div class="card"><p style="color:var(--text-dim);font-size:14px">👆 选择一个流派查看 Build 详情。</p></div>`
       : '';
@@ -204,14 +309,14 @@ function renderBuild() {
   }
   const c = D.classes.find(x => x.id === b.classId);
   const block = (title, items, cls, headColor) => items && items.length ? `
-    <div class="build-block ${cls}">
-      <h4 style="color:${headColor}">${title}</h4>
+    <details class="build-section ${cls}" ${cls === 'build-must' ? 'open' : ''}>
+      <summary style="color:${headColor}">${title}</summary>
       ${items.map(it => {
         const n = skillName(it.id);
         const cnt = it.count ? `<span class="cnt">×${it.count}</span>` : '';
         return `<div class="build-item">${cnt} <b>${n.zh}</b> <span class="en">${n.en}</span> — <span class="why">${it.reason}</span></div>`;
       }).join('')}
-    </div>` : '';
+    </details>` : '';
   document.getElementById('buildList').innerHTML = `
     <div class="card">
       <h2>${c.zh}（${c.en}）· ${b.archetype} <span style="font-size:13px;color:var(--text-dim)">${b.title}</span></h2>
@@ -222,8 +327,19 @@ function renderBuild() {
       <h3>玩法要点</h3>
       <p style="font-size:14px">${b.playstyle}</p>
       ${b.reroll ? `<h3>Reroll / 商店策略</h3><p style="font-size:14px">${b.reroll}</p>` : ''}
+      <a class="build-inline-cta" href="simulator.html?cls=${c.id}&arch=${b.archetypeId}">🎯 在模拟器中使用此 Build</a>
       <div class="tip">💡 把该方案作为「最终目标」在 <a href="simulator.html?cls=${c.id}&arch=${b.archetypeId}">加点模拟器</a> 中对照：模拟器会按你当前加点状态给出接下来的优先级推荐。</div>
     </div>`;
+  const renderedItems = [...(b.must||[]), ...(b.nice||[]), ...(b.avoid||[])];
+  document.querySelectorAll('#buildList .build-item').forEach((row, index) => {
+    const icon = skillIcon(renderedItems[index] && renderedItems[index].id);
+    if (icon) row.insertAdjacentHTML('afterbegin', `<span class="build-skill-icon"><img src="${icon}" alt="" loading="lazy"></span>`);
+  });
+  const cta = document.getElementById('buildCtaBar');
+  cta.innerHTML = `<a href="simulator.html?cls=${c.id}&arch=${b.archetypeId}">🎯 在模拟器中使用此 Build</a>`;
+  cta.style.display = 'block';
+  updateBuildSummary();
+  syncBuildUrl();
 }
 
 // 初始化：URL 参数定位（无参数时显示全部职业）
@@ -244,10 +360,13 @@ if (currentCls) {
     const vbs0 = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
     const all = bs0.map(b=>b.archetypeId).concat(vbs0.map(b=>b.archetypeId));
     currentArch = (qArch && all.includes(qArch)) ? qArch : null;
+    drawerSource = currentArch && vbs0.some(b => b.archetypeId === currentArch) ? 'community' : 'guide';
     fillArchTabs(!!currentArch);
     renderBuild();
   }
 }
+updateBuildSummary();
+syncBuildUrl();
 </script>
 <script src="site.js"></script>
 </body>

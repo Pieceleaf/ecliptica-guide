@@ -679,3 +679,84 @@ body.sim-page.mobile-mode .skill-icon .si-name {
 }
 body.sim-page.mobile-mode .skill-icon .si-minus { display: none; }
 body.sim-page.mobile-mode .skill-icon .si-badge { right: -3px; bottom: 25px; }
+
+/* ===== Phase 2: 移动端图鉴与 Build 选择体验 ===== */
+.upg-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.upg-tabs .upg-tab { flex: 1 1 0; }
+.filter-trigger, .active-filter-chips, .filter-drawer-actions { display: none; }
+.load-more {
+  grid-column: 1 / -1; width: 100%; min-height: 44px; padding: 9px 14px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--bg3);
+  color: var(--accent); cursor: pointer; font-weight: 600;
+}
+.load-more:hover { border-color: var(--accent); }
+.expand-chevron { color: var(--accent); font-size: 18px; line-height: 1; flex-shrink: 0; }
+.enemy-summary-tags { margin-top: 6px; }
+.enemy-tag.damage { border-color: var(--accent2); color: var(--accent2); }
+.enemy-tag.debuff { border-color: var(--red); color: var(--red); }
+.enemy-tag.mech { border-color: var(--accent); color: var(--accent); }
+.enemy-detail { border-top: 1px dashed var(--border); margin-top: 8px; padding-top: 2px; }
+.upg-note { position: relative; padding-right: 42px; }
+.upg-note::after {
+  content: '更多'; position: absolute; right: 0; bottom: 0; padding-left: 12px;
+  color: var(--accent); background: linear-gradient(90deg, transparent, var(--bg2) 35%);
+}
+.upg-note.open::after { content: '收起'; }
+.build-section { border-left: 3px solid var(--border); padding-left: 14px; margin: 10px 0; }
+.build-section.build-must { border-left-color: var(--red); }
+.build-section.build-nice { border-left-color: var(--blue); }
+.build-section.build-avoid { border-left-color: var(--text-dim); }
+.build-section summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-size: 14px; }
+.build-item { display: flex; align-items: flex-start; gap: 7px; }
+.build-skill-icon { width: 32px; height: 32px; flex: 0 0 32px; margin-top: -2px; }
+.build-skill-icon img { width: 32px; height: 32px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border); background: var(--bg3); }
+.build-item-body { min-width: 0; flex: 1; }
+.build-inline-cta { display: inline-flex; align-items: center; min-height: 44px; margin: 6px 0 10px; padding: 8px 14px; border: 1px solid var(--accent); border-radius: 8px; color: var(--accent); text-decoration: none; font-weight: 600; }
+.build-inline-cta:hover { background: rgba(240,180,41,.12); }
+.build-selection-summary, .build-cta-bar { display: none; }
+.build-drawer-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.build-drawer-head h3 { flex: 1; margin: 0; font-size: 16px; text-align: center; }
+.build-drawer-head .dm-cancel { flex: 0 0 auto; padding: 7px 10px; }
+.build-drawer-options { display: grid; gap: 8px; }
+.build-drawer-option { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg2); color: var(--text); text-align: left; cursor: pointer; }
+.build-drawer-option span { color: var(--text-dim); font-size: 12px; }
+.build-drawer-option.active { border-color: var(--accent); background: rgba(240,180,41,.12); color: var(--accent); }
+@media (min-width: 769px) { .build-cta-bar { display: none !important; } }
+
+@media (max-width: 768px) {
+  .upg-page main, .build-page main { padding-left: 0; padding-right: 0; }
+  .upg-page .upg-shell { border: 0; border-radius: 0; background: transparent; padding: 0; }
+  .upg-page .upg-tabs {
+    position: sticky; top: 0; z-index: 5; margin: 0; padding: 8px 12px;
+    background: var(--bg); border-bottom: 1px solid var(--border); gap: 4px;
+  }
+  .upg-page .upg-tabs .upg-tab {
+    min-width: 0; padding: 8px 5px; border-radius: 999px; background: var(--bg2);
+  }
+  .upg-page .upg-tabs .upg-tab.active { background: var(--accent); color: #1a1408; border-color: var(--accent); }
+  .upg-page .upg-search-sticky {
+    position: sticky; top: 60px; z-index: 4; margin: 0; padding: 8px 12px;
+    background: var(--bg); border-bottom: 1px solid rgba(42,53,71,.55);
+  }
+  .upg-page .skill-filters { display: none !important; }
+  .filter-trigger { display: block; width: calc(100% - 24px); min-height: 44px; margin: 0 12px 8px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg3); color: var(--text); text-align: left; cursor: pointer; }
+  .active-filter-chips { display: flex; position: sticky; top: 116px; z-index: 3; gap: 6px; flex-wrap: wrap; padding: 0 12px 8px; background: var(--bg); }
+  .active-filter-chip { min-height: 36px; padding: 6px 10px; border: 1px solid var(--accent); border-radius: 999px; background: rgba(240,180,41,.12); color: var(--accent); cursor: pointer; }
+  .filter-drawer-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .filter-drawer-actions button { min-height: 44px; flex: 1; }
+  #skillGrid { padding: 0 12px; }
+  #countInfo { margin: 10px 12px !important; }
+  #bossesPanel, #enemiesPanel { padding: 0 12px; }
+  .upg-page .upg-card { border-radius: 8px; }
+  .upg-page #bossesPanel .search-with-clear, .upg-page #enemiesPanel .search-with-clear { position: sticky; top: 60px; z-index: 4; padding-top: 8px; background: var(--bg); }
+  .build-page main { padding-bottom: calc(136px + env(safe-area-inset-bottom)); }
+  .build-page #buildTabs, .build-page #archTabs, .build-page .build-source-note { display: none !important; }
+  .build-selection-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 54px; margin: 0 12px 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg2); }
+  #buildSummaryText { min-width: 0; font-size: 13px; color: var(--text); }
+  #buildChangeBtn { min-height: 44px; padding: 8px 13px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(240,180,41,.12); color: var(--accent); cursor: pointer; white-space: nowrap; }
+  .build-page #buildList { padding: 0 12px; }
+  .build-page #buildList > .card { border-radius: 8px; }
+  .build-cta-bar { position: fixed; left: 0; right: 0; bottom: calc(54px + env(safe-area-inset-bottom)); z-index: 90; padding: 8px 12px; background: rgba(11,14,20,.94); border-top: 1px solid var(--border); }
+  .build-cta-bar a { display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 8px; background: var(--accent); color: #1a1408; text-decoration: none; font-weight: 700; }
+  .build-inline-cta { width: 100%; justify-content: center; }
+}
