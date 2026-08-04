@@ -2,9 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e14">
 <title>职业 - Ecliptica 日蚀攻略站</title>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <header>
@@ -51,7 +52,7 @@ document.getElementById('classGrid').innerHTML = D.classes.map(c => `
     <p>${c.descZh}</p>
     <p style="margin-top:6px"><span class="badge">HP：${c.hp}</span>
     ${(D.class_upgrades[c.id]||[]).length ? `<span class="badge">专属升级 ${D.class_upgrades[c.id].length} 个</span>` : ''}</p>
-    <a href="builds.html#${c.id}" style="font-size:13px">查看 Build 加点 →</a>
+    <a href="builds.html?cls=${c.id}" style="font-size:13px">查看 Build 加点 →</a>
   </div>`).join('');
 
 // 点击卡片展开详情

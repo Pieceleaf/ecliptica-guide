@@ -2,9 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e14">
 <title>游戏图鉴 - Ecliptica 日蚀攻略站</title>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <header>
@@ -47,8 +48,9 @@
         <option value="common">通用</option>
       </select>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <input type="text" id="kw" class="search-box" placeholder="🔍 搜索技能名（中/英/日）或效果关键词…" style="flex:1;margin-bottom:0;min-width:0">
+    <div class="search-with-clear">
+      <input type="text" id="kw" class="search-box" placeholder="🔍 搜索技能名（中/英/日）或效果关键词…">
+      <button id="clearKw" class="clear-search" type="button" aria-label="清除技能关键词">×</button>
     </div>
     <div style="overflow-x:auto">
     <div id="skillGrid" class="upg-grid"></div>
@@ -86,6 +88,28 @@ function allSkills() {
 const SKILLS = allSkills();
 
 function esc(t){return (t||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function emptyState(kind) {
+  return `<div class="empty-state"><p>没有匹配结果</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button data-empty-action="clear-${kind}">清除关键词</button><button data-empty-action="reset-${kind}">重置筛选</button></div></div>`;
+}
+function syncClearButton(input, button) {
+  if (input && button) button.style.visibility = input.value ? 'visible' : 'hidden';
+}
+function bindEmptyActions() {
+  document.querySelectorAll('[data-empty-action]').forEach(button => button.onclick = () => {
+    const action = button.dataset.emptyAction;
+    if (action === 'clear-skill' || action === 'reset-skill') document.getElementById('kw').value = '';
+    if (action === 'reset-skill') {
+      document.getElementById('shopFilter').value = 'all';
+      document.getElementById('rarFilter').value = 'all';
+      document.getElementById('clsFilter').value = 'all';
+    }
+    if (action === 'clear-boss' || action === 'reset-boss') { bossKw = ''; document.getElementById('bossKw').value = ''; }
+    if (action === 'clear-enemy' || action === 'reset-enemy') { enemyKw = ''; document.getElementById('enemyKw').value = ''; }
+    if (action.includes('skill')) render();
+    if (action.includes('boss')) renderBosses();
+    if (action.includes('enemy')) renderEnemies();
+  });
+}
 
 function render() {
   const shop = shopSel.value, rar = rarFilter.value, cls = clsSel.value;
@@ -101,7 +125,7 @@ function render() {
     }
     return true;
   });
-  document.getElementById('skillGrid').innerHTML = rows.map(s => `
+  document.getElementById('skillGrid').innerHTML = rows.length ? rows.map(s => `
     <div class="upg-card">
       <div class="upg-head">
         <img src="${D.icons[s.id]||''}" class="upg-icon" alt="" loading="lazy">
@@ -117,10 +141,12 @@ function render() {
         <span class="tag">${s.shopZh}</span>
         ${(s.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`).join('') : emptyState('skill');
   // 备注点击展开/收起
   document.querySelectorAll('.upg-note').forEach(n => n.onclick = () => n.classList.toggle('open'));
-  document.getElementById('countInfo').textContent = `共 ${rows.length} 个技能（通用 ${D.shops.reduce((a,s)=>a+s.skills.length,0)} + 职业专属 ${D.classes.reduce((a,c)=>a+(D.class_upgrades[c.id]||[]).length,0)}）`;
+  document.getElementById('countInfo').textContent = `显示 ${rows.length} / ${SKILLS.length}`;
+  syncClearButton(document.getElementById('kw'), document.getElementById('clearKw'));
+  bindEmptyActions();
 }
 // 搜索框防抖 + 焦点保持（移动端 IME 输入大列表重渲染时防失焦）
 function bindSearchInput(input, fn) {
@@ -135,7 +161,9 @@ function bindSearchInput(input, fn) {
   });
 }
 bindSearchInput(document.getElementById('kw'), render);
+document.getElementById('clearKw').onclick = () => { document.getElementById('kw').value = ''; render(); };
 shopSel.onchange = render; rarFilter.onchange = render; clsSel.onchange = render;
+render();
 
 // ---------- Boss / 小怪图鉴 ----------
 const ELEM_ZH = { 'PHYSICAL': '物理', 'FIRE': '火', 'FROST': '冰', 'ELECTRIC': '雷', 'LUMINOUS': '光', 'SHADOW': '暗', 'POISON': '毒' };
@@ -150,11 +178,12 @@ function renderBosses() {
   const panel = document.getElementById('bossesPanel');
   // 骨架（提示+搜索框）只创建一次——输入框节点保持稳定，避免失焦
   if (!panel.querySelector('#bossKw')) {
-    panel.innerHTML = `<div class="tip" style="margin-bottom:12px">共 ${(D.bosses||[]).length} 个 Boss · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Bosses" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。克制：<span class="aff aff-weak">×1.25 弱点</span> <span class="aff aff-neutral">×1</span> <span class="aff aff-resist">×0.7 抗性</span>；<b style="color:#b45cf5">紫色</b>攻击无视防御。点击卡片展开详情。</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="bossKw" class="search-box" placeholder="🔍 搜索 Boss（名称/称号/机制/攻略）…" style="flex:1;margin-bottom:0;min-width:0"></div>
-      <div id="bossList"></div>`;
+      panel.innerHTML = `<div class="tip" style="margin-bottom:12px">共 ${(D.bosses||[]).length} 个 Boss · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Bosses" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。克制：<span class="aff aff-weak">×1.25 弱点</span> <span class="aff aff-neutral">×1</span> <span class="aff aff-resist">×0.7 抗性</span>；<b style="color:#b45cf5">紫色</b>攻击无视防御。点击卡片展开详情。</div>
+      <div class="search-with-clear"><input type="text" id="bossKw" class="search-box" placeholder="🔍 搜索 Boss（名称/称号/机制/攻略）…"><button id="clearBossKw" class="clear-search" type="button" aria-label="清除 Boss 关键词">×</button></div>
+      <div id="bossCount" class="tip"></div><div id="bossList"></div>`;
     const kw = document.getElementById('bossKw');
     bindSearchInput(kw, () => { bossKw = kw.value; renderBosses(); });
+    document.getElementById('clearBossKw').onclick = () => { bossKw = ''; kw.value = ''; renderBosses(); };
   }
   // 注意：不回写输入框 value（用户输入原样保留，避免吞空格）
   const nk = bossKw.replace(/\s+/g, '').toLowerCase();
@@ -168,7 +197,10 @@ function renderBosses() {
       </div>
       ${bossOpen === b.id ? bossDetail(b) : ''}
     </div>`).join('') + `</div>`;
-  document.getElementById('bossList').innerHTML = bs.length ? grid : `<p style="color:var(--text-dim)">无匹配 Boss。</p>`;
+  document.getElementById('bossCount').textContent = `显示 ${bs.length} / ${(D.bosses||[]).length}`;
+  document.getElementById('bossList').innerHTML = bs.length ? grid : emptyState('boss');
+  syncClearButton(document.getElementById('bossKw'), document.getElementById('clearBossKw'));
+  bindEmptyActions();
   document.querySelectorAll('.boss-card').forEach(card => card.onclick = () => {
     bossOpen = bossOpen === card.dataset.boss ? null : card.dataset.boss;
     renderBosses();
@@ -194,12 +226,14 @@ function renderEnemies() {
   const panel = document.getElementById('enemiesPanel');
   // 骨架（提示+搜索框）只创建一次——输入框节点保持稳定，避免失焦
   if (!panel.querySelector('#enemyKw')) {
-    panel.innerHTML = `<div class="tip" style="margin-bottom:12px">共 ${(D.enemies||[]).length} 种怪物 · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Enemies" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。怪物按阶段出现，部分可施加异常或拥有特殊机制。</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="enemyKw" class="search-box" placeholder="🔍 搜索怪物（名称/伤害/异常/机制）…" style="flex:1;margin-bottom:0;min-width:0"></div>
+      panel.innerHTML = `<div class="tip" style="margin-bottom:12px">共 ${(D.enemies||[]).length} 种怪物 · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Enemies" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。怪物按阶段出现，部分可施加异常或拥有特殊机制。</div>
+      <div class="search-with-clear"><input type="text" id="enemyKw" class="search-box" placeholder="🔍 搜索怪物（名称/伤害/异常/机制）…"><button id="clearEnemyKw" class="clear-search" type="button" aria-label="清除怪物关键词">×</button></div>
+      <div id="enemyCount" class="tip"></div>
       <div id="enemyList"></div>
       <div id="enemyBossRel"></div>`;
     const kw = document.getElementById('enemyKw');
     bindSearchInput(kw, () => { enemyKw = kw.value; renderEnemies(); });
+    document.getElementById('clearEnemyKw').onclick = () => { enemyKw = ''; kw.value = ''; renderEnemies(); };
   }
   // 注意：不回写输入框 value（用户输入原样保留，避免吞空格）
   const nk = enemyKw.replace(/\s+/g, '').toLowerCase();
@@ -230,8 +264,11 @@ function renderEnemies() {
       ${(e.mech||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.mech.map(m => `<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(m)}</span>`).join('')}</div>` : ''}
       ${e.tips ? `<div class="boss-sec" style="margin-top:6px"><h4>🛡 应对</h4><p>${esc(e.tips)}</p></div>` : ''}
     </div>`).join('') + `</div>` : '';
-  document.getElementById('enemyList').innerHTML = es.length ? `<div class="upg-grid">` + es.map(card).join('') + `</div>` : `<p style="color:var(--text-dim)">无匹配怪物。</p>`;
+  document.getElementById('enemyCount').textContent = `显示 ${es.length} / ${(D.enemies||[]).length}`;
+  document.getElementById('enemyList').innerHTML = es.length ? `<div class="upg-grid">` + es.map(card).join('') + `</div>` : emptyState('enemy');
   document.getElementById('enemyBossRel').innerHTML = bossRelHtml;
+  syncClearButton(document.getElementById('enemyKw'), document.getElementById('clearEnemyKw'));
+  bindEmptyActions();
 }
 function switchTab(t) {
   document.querySelectorAll('.upg-tab').forEach(b => b.classList.remove('active'));
