@@ -147,8 +147,18 @@ function affChip(a, val) {
 let bossKw = '', bossOpen = null;
 function renderBosses() {
   const bs = (D.bosses||[]).filter(b => !bossKw || (b.name + ' ' + (b.desc||'') + ' ' + (b.zh_mech||'') + ' ' + (b.zh_tips||'')).toLowerCase().includes(bossKw));
-  const legend = `<div class="tip" style="margin-bottom:12px">共 ${(D.bosses||[]).length} 个 Boss · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Bosses" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。克制：<span class="aff aff-weak">×1.25 弱点</span> <span class="aff aff-neutral">×1</span> <span class="aff aff-resist">×0.7 抗性</span>；<b style="color:#b45cf5">紫色</b>攻击无视防御。点击卡片展开详情。</div>`;
-  const search = `<div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="bossKw" class="search-box" placeholder="🔍 搜索 Boss（名称/称号/机制/攻略）…" style="flex:1;margin-bottom:0;min-width:0"></div>`;
+  const panel = document.getElementById('bossesPanel');
+  // 骨架（提示+搜索框）只创建一次——输入框节点保持稳定，避免失焦
+  if (!panel.querySelector('#bossKw')) {
+    panel.innerHTML = `<div class="tip" style="margin-bottom:12px">共 ${(D.bosses||[]).length} 个 Boss · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Bosses" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。克制：<span class="aff aff-weak">×1.25 弱点</span> <span class="aff aff-neutral">×1</span> <span class="aff aff-resist">×0.7 抗性</span>；<b style="color:#b45cf5">紫色</b>攻击无视防御。点击卡片展开详情。</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="bossKw" class="search-box" placeholder="🔍 搜索 Boss（名称/称号/机制/攻略）…" style="flex:1;margin-bottom:0;min-width:0"></div>
+      <div id="bossList"></div>`;
+    const kw = document.getElementById('bossKw');
+    kw.value = bossKw;
+    bindSearchInput(kw, () => { bossKw = kw.value.trim().toLowerCase(); renderBosses(); });
+  } else {
+    panel.querySelector('#bossKw').value = bossKw;
+  }
   const grid = `<div class="upg-grid">` + bs.map(b => `
     <div class="upg-card boss-card" data-boss="${b.id}" style="cursor:pointer">
       <div class="upg-head">
@@ -158,10 +168,7 @@ function renderBosses() {
       </div>
       ${bossOpen === b.id ? bossDetail(b) : ''}
     </div>`).join('') + `</div>`;
-  document.getElementById('bossesPanel').innerHTML = legend + search + (bs.length ? grid : `<p style="color:var(--text-dim)">无匹配 Boss。</p>`);
-  const kw = document.getElementById('bossKw');
-  kw.value = bossKw;
-  bindSearchInput(kw, () => { bossKw = kw.value.trim().toLowerCase(); renderBosses(); });
+  document.getElementById('bossList').innerHTML = bs.length ? grid : `<p style="color:var(--text-dim)">无匹配 Boss。</p>`;
   document.querySelectorAll('.boss-card').forEach(card => card.onclick = () => {
     bossOpen = bossOpen === card.dataset.boss ? null : card.dataset.boss;
     renderBosses();
@@ -185,7 +192,19 @@ function bossDetail(b) {
 let enemyKw = '';
 function renderEnemies() {
   const es = (D.enemies||[]).filter(e => !enemyKw || (e.name + ' ' + (e.damage||'') + ' ' + (e.debuffs||[]).join('') + ' ' + (e.mech||[]).join('')).toLowerCase().includes(enemyKw));
-  const search = `<div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="enemyKw" class="search-box" placeholder="🔍 搜索怪物（名称/伤害/异常/机制）…" style="flex:1;margin-bottom:0;min-width:0"></div>`;
+  const panel = document.getElementById('enemiesPanel');
+  // 骨架（提示+搜索框）只创建一次——输入框节点保持稳定，避免失焦
+  if (!panel.querySelector('#enemyKw')) {
+    panel.innerHTML = `<div class="tip" style="margin-bottom:12px">共 ${(D.enemies||[]).length} 种怪物 · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Enemies" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。怪物按阶段出现，部分可施加异常或拥有特殊机制。</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="enemyKw" class="search-box" placeholder="🔍 搜索怪物（名称/伤害/异常/机制）…" style="flex:1;margin-bottom:0;min-width:0"></div>
+      <div id="enemyList"></div>
+      <div id="enemyBossRel"></div>`;
+    const kw = document.getElementById('enemyKw');
+    kw.value = enemyKw;
+    bindSearchInput(kw, () => { enemyKw = kw.value.trim().toLowerCase(); renderEnemies(); });
+  } else {
+    panel.querySelector('#enemyKw').value = enemyKw;
+  }
   const card = e => `
     <div class="upg-card">
       <div class="upg-head">
@@ -212,14 +231,8 @@ function renderEnemies() {
       ${(e.mech||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.mech.map(m => `<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(m)}</span>`).join('')}</div>` : ''}
       ${e.tips ? `<div class="boss-sec" style="margin-top:6px"><h4>🛡 应对</h4><p>${esc(e.tips)}</p></div>` : ''}
     </div>`).join('') + `</div>` : '';
-  document.getElementById('enemiesPanel').innerHTML =
-    `<div class="tip" style="margin-bottom:12px">共 ${(D.enemies||[]).length} 种怪物 · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Enemies" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。怪物按阶段出现，部分可施加异常或拥有特殊机制。</div>`
-    + search
-    + (es.length ? `<div class="upg-grid">` + es.map(card).join('') + `</div>` : `<p style="color:var(--text-dim)">无匹配怪物。</p>`)
-    + bossRelHtml;
-  const kw = document.getElementById('enemyKw');
-  kw.value = enemyKw;
-  bindSearchInput(kw, () => { enemyKw = kw.value.trim().toLowerCase(); renderEnemies(); });
+  document.getElementById('enemyList').innerHTML = es.length ? `<div class="upg-grid">` + es.map(card).join('') + `</div>` : `<p style="color:var(--text-dim)">无匹配怪物。</p>`;
+  document.getElementById('enemyBossRel').innerHTML = bossRelHtml;
 }
 function switchTab(t) {
   document.querySelectorAll('.upg-tab').forEach(b => b.classList.remove('active'));
