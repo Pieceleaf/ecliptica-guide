@@ -28,10 +28,12 @@
   </div>
 
   <div class="card">
+    <div class="table-scroll">
     <table id="statTable">
       <thead><tr><th>属性</th><th>软上限</th><th>硬上限</th><th>说明</th></tr></thead>
       <tbody></tbody>
     </table>
+    </div>
     <div class="tip" style="margin-top:10px">
       ⚠ 硬上限并非绝对（需要数百层才能触及，正常对局不可能达到）；软上限后每层收益递减。具体每个属性的堆叠来源见 <a href="upgrades.html">游戏图鉴</a>；与加点进度联动的优先级推荐见 <a href="simulator.html">加点模拟器</a>。
     </div>
@@ -80,6 +82,6 @@ document.querySelector('#statTable tbody').innerHTML = D.stats.map(s => `
     <td>${s.desc}</td>
   </tr>`).join('');
 </script>
-<script src="site.js"></script>
+<script src="site.js?v=2"></script>
 </body>
 </html>

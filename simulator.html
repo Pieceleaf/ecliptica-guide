@@ -727,7 +727,7 @@ const STAT_PCT = { attackspeed:1, projectilespeed:1, movespeed:1, healingrecv:1,
 function renderStatsModal() {
   const { tot, src } = calcStats();
   document.getElementById('statsSub').textContent = `· ${currentCls ? D.classes.find(c=>c.id===currentCls).zh : ''}（加点 + 符文 + 诅咒 + 神器）`;
-  let html = '<table style="width:100%;border-collapse:collapse">';
+  let html = '<div class="table-scroll"><table style="width:100%;border-collapse:collapse">';
   html += '<tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:4px">属性</th><th style="text-align:right;padding:4px">加成</th><th style="text-align:right;padding:4px">软/硬上限</th><th style="text-align:left;padding:4px">来源</th></tr>';
   for (const st of D.stats) {
     const v = tot[st.id]||0;
@@ -743,7 +743,7 @@ function renderStatsModal() {
       <td style="padding:4px;text-align:right;color:var(--text-dim)">${warn}${softTxt}/${hardTxt}</td>
       <td style="padding:4px;font-size:11.5px;color:var(--text-dim)">${(src[st.id]||[]).slice(0,4).join('、')||'—'}</td></tr>`;
   }
-  html += '</table>';
+  html += '</table></div>';
   html += '<p style="margin-top:8px;font-size:12px;color:var(--text-dim)">※ 加成以 100% 为基准（如攻速 100% + 加成 = 实际攻速）；最大生命为职业基础+加成。特殊效果技能（暴击触发类/减伤类等）不参与数值计算，详见技能详情。</p>';
   document.getElementById('statsBody').innerHTML = html;
   showLayer('statsModal');
@@ -1051,6 +1051,15 @@ document.addEventListener('mouseover', e => {
     const tip = cont.querySelector('.si-tip');
     if (tip && tip.textContent.trim()) showTip(tip.innerHTML, cont.getBoundingClientRect());
   } else hideTip();
+});
+document.addEventListener('focusin', e => {
+  const cont = e.target.closest('.pick-row, .prio-item, .skill-icon');
+  const tip = cont && cont.querySelector('.si-tip');
+  if (tip && tip.textContent.trim()) showTip(tip.innerHTML, cont.getBoundingClientRect());
+});
+document.addEventListener('focusout', e => {
+  const cont = e.target.closest('.pick-row, .prio-item, .skill-icon');
+  if (cont && !cont.contains(e.relatedTarget)) hideTip();
 });
 window.addEventListener('scroll', hideTip, true);
 
@@ -1623,6 +1632,6 @@ if (archQ && (D.builds.some(b=>b.archetypeId===archQ) || customBuilds.some(b=>b.
   renderAll();
 }
 </script>
-<script src="site.js"></script>
+<script src="site.js?v=2"></script>
 </body>
 </html>

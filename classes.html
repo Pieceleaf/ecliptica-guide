@@ -70,12 +70,12 @@ function showClass(id) {
     <h2>${c.zh}（${c.en} / ${c.jp}）<span class="role role-${c.role}">${roleNames[c.role]}</span></h2>
     <p style="margin-bottom:10px">${c.descZh} <span class="en">${c.desc}</span></p>
     <h3>技能</h3>
-    <table>
+    <div class="table-scroll"><table>
       <tr><th>类型</th><th>技能</th><th>说明</th></tr>
       ${c.skills.map(s => `<tr><td><b>${s.type}</b></td><td>${s.zh}<span class="en">${s.en}</span></td><td>${s.desc}</td></tr>`).join('')}
-    </table>
+    </table></div>
     <h3>职业专属升级（${ups.length} 个）</h3>
-    <table>
+    <div class="table-scroll"><table>
       <tr><th>稀有度</th><th>技能</th><th>效果</th><th>备注</th></tr>
       ${ups.map(u => `<tr>
         <td><span class="rar rar-${u.rarity}">${u.rarity}</span></td>
@@ -83,11 +83,11 @@ function showClass(id) {
         <td>${u.descZh}</td>
         <td>${u.notes || ''}</td>
       </tr>`).join('')}
-    </table>
+    </table></div>
     <div class="tip">在游戏内请以英文名对照（${c.en}：${c.skills.map(s=>s.en).join(' / ')}）。</div>`;
   box.scrollIntoView({behavior:'smooth', block:'start'});
 }
 </script>
-<script src="site.js"></script>
+<script src="site.js?v=2"></script>
 </body>
 </html>
