@@ -24,7 +24,6 @@
   <div class="page-head">
     <h1>加点模拟器 & 优先级计算器</h1>
     <p>① 选择职业与流派 → ② <b>搜索技能，点击「＋」加点</b>（同一技能可多次加点叠层）→ ③ 系统实时给出该技能在该职业流派下的<b>绝对优先级排名</b>，并联动当前加点状态与流派 Build 目标给出下一步建议。</p>
-    <div class="tip">说明：优先级 = 基准分（社区共识） + 流派 Build 修正（必须/准必须/不要） + 进度修正（已达标降权 / 属性接近软上限降权 / 互斥排除）。基准分与软上限估算为攻略站整理，非官方数值。</div>
   </div>
 
   <div class="sim-layout">
@@ -110,10 +109,32 @@
     <div id="dmBody"></div>
     <div class="dm-actions">
       <button class="dm-btn minus" id="dmMinus">−</button>
-      <span class="dm-count" id="dmCount">0</span>
+      <span id="dmCount" class="dm-count"></span>
       <button class="dm-btn plus" id="dmPlus">＋</button>
     </div>
-    <div class="dm-close" id="dmClose">点击空白处关闭</div>
+    <div class="dm-btns">
+      <button id="dmCancel" class="dm-cancel">↩ 取消</button>
+      <button id="dmOk" class="dm-ok">✅ 完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 神器管理弹窗（加减次数） -->
+<div class="detail-modal" id="artModal">
+  <div class="dm-box">
+    <div id="artBody" style="font-size:14px"></div>
+    <div class="dm-actions">
+      <button class="dm-btn minus" id="artMinus">−</button>
+      <span id="artCount" class="dm-count"></span>
+      <button class="dm-btn plus" id="artPlus">＋</button>
+    </div>
+    <div style="text-align:center;margin:6px 0">
+      <button id="artClear" style="background:none;border:1px solid var(--red);color:var(--red);padding:5px 14px;border-radius:6px;cursor:pointer;font-size:12.5px">🗑 清零</button>
+    </div>
+    <div class="dm-btns">
+      <button id="artCancel" class="dm-cancel">↩ 取消</button>
+      <button id="artOk" class="dm-ok">✅ 完成</button>
+    </div>
   </div>
 </div>
 
@@ -122,7 +143,7 @@
   <div class="dm-box" style="width:min(520px,94vw)">
     <h3 style="margin-bottom:10px">📊 当前属性 <span id="statsSub" style="font-size:12px;color:var(--text-dim)"></span></h3>
     <div id="statsBody" style="font-size:13.5px"></div>
-    <div class="dm-close" id="statsClose">点击空白处关闭</div>
+    <div class="dm-btns" style="margin-top:12px"><button id="statsOk" class="dm-ok" style="flex:1">✅ 确认</button></div>
   </div>
 </div>
 
@@ -132,7 +153,7 @@
     <h3 style="margin-bottom:10px">🎯 选择职业与 Build</h3>
     <div class="bm-cls-row" id="bmClsRow"></div>
     <div id="buildModalList" style="font-size:14px"></div>
-    <div class="dm-close" id="buildModalClose">点击空白处关闭</div>
+    <div class="dm-btns" style="margin-top:12px"><button id="buildModalOk" class="dm-ok" style="flex:1">✅ 完成</button></div>
   </div>
 </div>
 
@@ -626,10 +647,7 @@ function renderArtifactPicker(cid) {
       </div>
     </div>`).join('') || '<p style="color:var(--text-dim);padding:10px">无匹配神器。</p>';
   document.querySelectorAll(`#${cid} .pick-row[data-id]`).forEach(el => el.onclick = () => {
-    const id = el.dataset.id;
-    // 每小局可获得 1 个、可重复；点击 +1，超过 12 个（最终 Boss 前小局数）回到 0
-    artifactState[id] = ((artifactState[id]||0) + 1) % (ARTIFACT_MAX + 1);
-    renderPicker(cid); renderAll();
+    openArtModal(el.dataset.id);
   });
 }
 
@@ -801,7 +819,7 @@ function renderState() {
   const b = buildOf(currentCls, currentArch);
   document.getElementById('stateCount').textContent = `· 已加 ${rows.reduce((a,s)=>a+state[s.id],0)} 层 / ${rows.length} 个技能`;
   if (!rows.length) {
-    document.getElementById('stateTable').innerHTML = '<p style="color:var(--text-dim)">还没有加点 — 在左侧搜索技能并点击「＋ 加点」开始。</p>';
+    document.getElementById('stateTable').innerHTML = '';
     return;
   }
   let html = '';
@@ -935,6 +953,7 @@ function renderAll() {
   renderState();
   renderPrio();
   renderNext();
+  saveSimState();   // 每次状态变化自动缓存（防切页/杀后台丢失）
 }
 
 // ---------- 全局悬浮详情弹窗（body 级，避免被列表 overflow 裁剪） ----------
@@ -975,7 +994,35 @@ window.addEventListener('scroll', hideTip, true);
 const isTouch = (('ontouchstart' in window) || navigator.maxTouchPoints > 0) || location.search.includes('touch=1');
 if (isTouch) document.body.classList.add('touch-mode');
 let dmSkillId = null;      // 详情弹窗当前技能
+let dmInitLayers = 0;      // 详情弹窗打开时的层数（取消时还原）
 let dmFromSearch = false;  // 详情是否由搜索弹窗打开
+
+// ---------- 实时加点状态缓存（防切页/关浏览器/杀后台丢失） ----------
+const SIM_STATE_KEY = 'ecliptica_sim_state_v1';
+function saveSimState() {
+  try {
+    localStorage.setItem(SIM_STATE_KEY, JSON.stringify({
+      cls: currentCls, arch: currentArch,
+      state: state, runeOrder: runeOrder, artifactState: artifactState,
+      savedAt: Date.now()
+    }));
+  } catch(e) {}
+}
+function loadSimState() {
+  try {
+    const raw = localStorage.getItem(SIM_STATE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d || !d.state || !Object.keys(d.state).length) return false;  // 空状态不恢复
+    if (d.cls && D.classes.some(c => c.id === d.cls)) currentCls = d.cls;
+    currentArch = d.arch || null;
+    state = d.state || {};
+    runeOrder = (d.runeOrder||[]).filter(rid => D.runes.some(r => r.id === rid)).slice(0, 2);
+    artifactState = {};
+    Object.assign(artifactState, d.artifactState||{});
+    return true;
+  } catch(e) { return false; }
+}
 
 function skillById(id) {
   for (const s of classSkills(currentCls)) if (s.id === id) return s;
@@ -985,6 +1032,7 @@ function openDetail(id, fromSearch) {
   const s = skillById(id);
   if (!s) return;
   dmSkillId = id; dmFromSearch = !!fromSearch;
+  dmInitLayers = state[id] || 0;   // 记录打开时层数（取消时还原）
   renderDetail();
   document.getElementById('detailModal').classList.add('show');
 }
@@ -999,6 +1047,29 @@ function renderDetail() {
   document.getElementById('dmCount').textContent = `${state[s.id]||0}${y?`/${y}`:''}`;
 }
 function closeDetail() { document.getElementById('detailModal').classList.remove('show'); dmSkillId = null; }
+function cancelDetail() {
+  if (dmSkillId) { state[dmSkillId] = dmInitLayers; renderAll(); }
+  closeDetail();
+}
+// 神器管理弹窗
+let artId = null, artInit = 0;
+function openArtModal(id) {
+  artId = id; artInit = artifactState[id] || 0;
+  const a = D.artifacts.find(x => x.id === id);
+  document.getElementById('artBody').innerHTML = a
+    ? `<b>🏺 ${a.zh}</b> <span class="en">${a.en}</span><div style="font-size:12.5px;color:var(--text-dim);margin-top:2px">${a.effect}</div><div style="font-size:12px;color:var(--text-dim);margin-top:2px">每小局获得 1 个，跨小局累积（上限 ${ARTIFACT_MAX} 个）</div>`
+    : '';
+  document.getElementById('artCount').textContent = `${artifactState[id]||0}`;
+  document.getElementById('artModal').classList.add('show');
+}
+function renderArtCount() {
+  document.getElementById('artCount').textContent = `${artifactState[artId]||0}`;
+}
+function closeArtModal() { document.getElementById('artModal').classList.remove('show'); artId = null; }
+function cancelArtModal() {
+  if (artId) { artifactState[artId] = artInit; renderAll(); }
+  closeArtModal();
+}
 
 // 搜索弹窗（手机端）
 function openSearchModal() {
@@ -1032,7 +1103,7 @@ clsSel.onchange = () => {
 archSel.onchange = () => { currentArch = archSel.value; renderArchBadge(); renderAll(); };
 // 流派弹窗（手机端）
 document.getElementById('archPickBtn').onclick = openBuildModal;
-document.getElementById('buildModalClose').onclick = () => document.getElementById('buildModal').classList.remove('show');
+document.getElementById('buildModalOk').onclick = () => document.getElementById('buildModal').classList.remove('show');
 document.getElementById('buildModal').addEventListener('click', e => {
   if (e.target === document.getElementById('buildModal')) document.getElementById('buildModal').classList.remove('show');
 });
@@ -1163,7 +1234,7 @@ document.getElementById('shareModal').addEventListener('click', e => {
 
 // 当前属性
 document.getElementById('btnStats').onclick = renderStatsModal;
-document.getElementById('statsClose').onclick = () => document.getElementById('statsModal').classList.remove('show');
+document.getElementById('statsOk').onclick = () => document.getElementById('statsModal').classList.remove('show');
 document.getElementById('statsModal').addEventListener('click', e => {
   if (e.target === document.getElementById('statsModal')) document.getElementById('statsModal').classList.remove('show');
 });
@@ -1179,9 +1250,31 @@ document.getElementById('dmMinus').onclick = () => {
   renderDetail(); renderAll();
   if (dmFromSearch) closeSearchModal();
 };
-document.getElementById('dmClose').onclick = closeDetail;
+document.getElementById('dmOk').onclick = closeDetail;
+document.getElementById('dmCancel').onclick = cancelDetail;
 document.getElementById('detailModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('detailModal')) closeDetail();  // 点遮罩关闭
+  if (e.target === document.getElementById('detailModal')) cancelDetail();  // 点遮罩 = 取消（还原）
+});
+// 神器管理弹窗
+document.getElementById('artPlus').onclick = () => {
+  if (!artId) return;
+  artifactState[artId] = Math.min(ARTIFACT_MAX, (artifactState[artId]||0) + 1);
+  renderArtCount(); renderAll();
+};
+document.getElementById('artMinus').onclick = () => {
+  if (!artId) return;
+  artifactState[artId] = Math.max(0, (artifactState[artId]||0) - 1);
+  renderArtCount(); renderAll();
+};
+document.getElementById('artClear').onclick = () => {
+  if (!artId) return;
+  artifactState[artId] = 0;
+  renderArtCount(); renderAll();
+};
+document.getElementById('artOk').onclick = () => { renderAll(); closeArtModal(); };
+document.getElementById('artCancel').onclick = cancelArtModal;
+document.getElementById('artModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('artModal')) cancelArtModal();  // 点遮罩 = 取消（还原）
 });
 
 // 全平台复制（clipboard API + execCommand 兜底，兼容 http/localhost 与手机浏览器）
@@ -1223,6 +1316,7 @@ function initSharedUrl() {
 
 // ---------- 初始化 ----------
 loadCustomBuilds();
+loadSimState();   // 恢复上次实时加点状态（URL 参数/分享链接优先覆盖）
 const q = new URLSearchParams(location.search);
 const clsQ = q.get('cls');
 currentCls = (clsQ && D.classes.some(c=>c.id===clsQ)) ? clsQ : D.classes[0].id;
