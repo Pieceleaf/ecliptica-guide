@@ -16,6 +16,7 @@ BUILDS = BUILDS_A + BUILDS_B
 
 from data_part8a import RUNES_FULL, CURSES_FULL, ARTIFACTS_FULL
 from data_part8b import STAT_EFFECTS
+from data_part9 import VRCT_BUILDS
 
 # 技能图标（英文名 -> 图标文件 URL，来自 wiki 表格）
 ICONS_BY_EN = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "research", "wiki", "icons.json"), encoding="utf-8"))
@@ -64,6 +65,7 @@ DATA = {
  "curses": CURSES_FULL,
  "artifacts": ARTIFACTS_FULL,
  "stat_effects": STAT_EFFECTS,
+ "vrct_builds": VRCT_BUILDS,
  "changelog": CHANGELOG,
  "difficulties": [
    {"en":"Primal","zh":"原始"},

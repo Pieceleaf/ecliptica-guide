@@ -193,6 +193,7 @@ function classSkills(clsId) {
 function buildsOf(clsId) { return D.builds.filter(b => b.classId === clsId); }
 function buildOf(clsId, archId) {
   if (archId && archId.startsWith('custom_')) return customBuilds.find(b => b.classId === clsId && b.archetypeId === archId) || null;
+  if (archId && archId.startsWith('vrct_')) return (D.vrct_builds||[]).find(b => b.classId === clsId && b.archetypeId === archId) || null;
   return D.builds.find(b => b.classId === clsId && b.archetypeId === archId);
 }
 function nameOf(id) {
@@ -327,10 +328,12 @@ function applySharedBuild(decoded, sig) {
 function fillArchetypes() {
   const bs = buildsOf(currentCls);
   const cs = customBuilds.filter(b => b.classId === currentCls);
+  const vbs = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
   archSel.innerHTML = '';
   bs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">${b.archetype}（${b.title}）</option>`));
   cs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">✏️ ${b.archetype}（自定义）</option>`));
-  currentArch = bs.length ? bs[0].archetypeId : (cs.length ? cs[0].archetypeId : null);
+  vbs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">🌐 ${b.archetype}（社区）</option>`));
+  currentArch = bs.length ? bs[0].archetypeId : (cs.length ? cs[0].archetypeId : (vbs.length ? vbs[0].archetypeId : null));
   archSel.value = currentArch;
   renderArchBadge();
 }
@@ -362,14 +365,17 @@ function renderBuildModal() {
   // 流派列表
   const bs = buildsOf(currentCls);
   const cs = customBuilds.filter(b => b.classId === currentCls);
+  const vbs = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
   const opt = b => `
     <div class="build-opt${b.archetypeId===currentArch?' active':''}" data-id="${b.archetypeId}">
-      <span class="b-opt-name">${b.archetypeId.startsWith('custom_')?'✏️ ':''}${b.archetype}</span>
+      <span class="b-opt-name">${b.archetypeId.startsWith('custom_')?'✏️ ':b.archetypeId.startsWith('vrct_')?'🌐 ':''}${b.archetype}</span>
       <span class="b-opt-src">${b.source ? b.source.split('（')[0] : ''}</span>
       ${b.archetypeId.startsWith('custom_') ? `<span class="b-opt-del" data-del="${b.archetypeId}">🗑</span>` : ''}
     </div>`;
   document.getElementById('buildModalList').innerHTML =
-    bs.map(opt).join('') + (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义（本浏览器保存）—</div>` + cs.map(opt).join('') : '');
+    bs.map(opt).join('') +
+    (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义（本浏览器保存）—</div>` + cs.map(opt).join('') : '') +
+    (vbs.length ? `<div class="tip" style="margin:6px 0">— 🌐 社区 Build（VRCT 共享市场）—</div>` + vbs.map(opt).join('') : '');
   document.querySelectorAll('#buildModalList .build-opt').forEach(el => {
     // 长按删除（触屏 600ms；桌面保留 🗑 按钮）
     if (el.dataset.id.startsWith('custom_')) {
@@ -1157,13 +1163,22 @@ function initSharedUrl() {
 
 // ---------- 初始化 ----------
 loadCustomBuilds();
-const q = new URLSearchParams(location.search).get('cls');
-currentCls = (q && D.classes.some(c=>c.id===q)) ? q : D.classes[0].id;
+const q = new URLSearchParams(location.search);
+const clsQ = q.get('cls');
+currentCls = (clsQ && D.classes.some(c=>c.id===clsQ)) ? clsQ : D.classes[0].id;
 clsSel.value = currentCls;
 fillArchetypes();
 renderArchBadge();
 renderAll();
 initSharedUrl();
+// URL arch 参数：加载指定流派（含 VRCT 社区方案）
+const archQ = q.get('arch');
+if (archQ && (D.builds.some(b=>b.archetypeId===archQ) || customBuilds.some(b=>b.archetypeId===archQ) || (D.vrct_builds||[]).some(b=>b.archetypeId===archQ))) {
+  currentArch = archQ;
+  archSel.value = archQ;
+  renderArchBadge();
+  renderAll();
+}
 </script>
 <script src="site.js"></script>
 </body>
