@@ -91,6 +91,7 @@ td .jp { color: var(--text-dim); font-size: 11px; opacity: .8; display: block; }
 
 /* 稀有度 */
 .rar { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.upg-icon { width: 34px; height: 34px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg3); object-fit: contain; padding: 2px; vertical-align: middle; margin-left: 6px; }
 .rar-Common { color: var(--common); border: 1px solid var(--common); }
 .rar-Rare { color: var(--rare); border: 1px solid var(--rare); }
 .rar-Legendary { color: var(--legendary); border: 1px solid var(--legendary); }

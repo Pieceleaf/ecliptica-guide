@@ -97,7 +97,7 @@ function render() {
     <tr>
       <td>${s.classId ? `<span class="tag" style="border-color:var(--accent2);color:var(--accent2)">${s.classZh}</span>` : ''}<b>${s.shopZh}</b><span class="en">${s.shopEn}</span></td>
       <td><span class="rar rar-${s.rarity}">${s.rarity}</span></td>
-      <td><b>${esc(s.zh)}</b><span class="en">${esc(s.en)}</span><span class="jp">${esc(s.jp||'')}</span></td>
+      <td><b>${esc(s.zh)}</b><span class="en">${esc(s.en)}</span><span class="jp">${esc(s.jp||'')}</span> <img src="${D.icons[s.id]||''}" class="upg-icon" alt="" loading="lazy"></td>
       <td>${esc(s.descZh)}</td>
       <td>${esc(s.notes||'')}</td>
       <td>${(s.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</td>
