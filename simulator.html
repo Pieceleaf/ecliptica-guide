@@ -353,7 +353,11 @@ function fillArchetypes() {
   bs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">${b.archetype}（${b.title}）</option>`));
   cs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">✏️ ${b.archetype}（自定义）</option>`));
   vbs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">🌐 ${b.archetype}（社区）</option>`));
-  currentArch = bs.length ? bs[0].archetypeId : (cs.length ? cs[0].archetypeId : (vbs.length ? vbs[0].archetypeId : null));
+  // 保留当前流派（若仍在列表）；否则默认第一个
+  const all = [...bs, ...cs, ...vbs];
+  if (!currentArch || !all.some(b => b.archetypeId === currentArch)) {
+    currentArch = all.length ? all[0].archetypeId : null;
+  }
   archSel.value = currentArch;
   renderArchBadge();
 }
@@ -583,7 +587,7 @@ const ARTIFACT_MAX = 12;
 
 function renderRunePicker(cid) {
   const kw = document.getElementById(cid === 'skillPicker' ? 'skillKw' : 'smKw').value.trim().toLowerCase();
-  const shown = D.runes.filter(r => !kw || (r.zh + ' ' + r.en).toLowerCase().includes(kw));
+  const shown = D.runes.filter(r => !kw || (r.zh + ' ' + r.en + ' ' + JSON.stringify(r.stat||{}) + ' ' + (r.effect||'')).toLowerCase().includes(kw));
   document.getElementById(cid).innerHTML = shown.map(r => {
     const slot = runeOrder.indexOf(r.id);  // -1 未装；0 槽1(×1)；1 槽2(×2)
     return `
@@ -609,7 +613,7 @@ function renderRunePicker(cid) {
 
 function renderCursePicker(cid) {
   const kw = document.getElementById(cid === 'skillPicker' ? 'skillKw' : 'smKw').value.trim().toLowerCase();
-  const shown = D.curses.filter(c => !kw || (c.zh + ' ' + c.en).toLowerCase().includes(kw));
+  const shown = D.curses.filter(c => !kw || (c.zh + ' ' + c.en + ' ' + JSON.stringify(c.stat||{}) + ' ' + (c.effect||'')).toLowerCase().includes(kw));
   document.getElementById(cid).innerHTML = shown.map(c => {
     const slot = curseOrder.indexOf(c.id);
     return `
@@ -634,7 +638,7 @@ function renderCursePicker(cid) {
 
 function renderArtifactPicker(cid) {
   const kw = document.getElementById(cid === 'skillPicker' ? 'skillKw' : 'smKw').value.trim().toLowerCase();
-  const shown = D.artifacts.filter(a => !kw || (a.zh + ' ' + a.en).toLowerCase().includes(kw));
+  const shown = D.artifacts.filter(a => !kw || (a.zh + ' ' + a.en + ' ' + (a.effect||'')).toLowerCase().includes(kw));
   document.getElementById(cid).innerHTML = shown.map(a => `
     <div class="pick-row" data-id="${a.id}" style="cursor:pointer">
       <div class="pick-info">
@@ -733,7 +737,7 @@ function renderPicker(cid) {
   const kw = document.getElementById(cid === 'skillPicker' ? 'skillKw' : 'smKw').value.trim().toLowerCase();
   const skills = classSkills(currentCls).filter(s => {
     if (!kw) return true;
-    return (s.zh + ' ' + s.en + ' ' + (s.jp||'')).toLowerCase().includes(kw);
+    return (s.zh + ' ' + s.en + ' ' + (s.jp||'') + ' ' + (s.descZh||'') + ' ' + (s.notes||'')).toLowerCase().includes(kw);
   });
   const scored = skills.map(s => ({s, sc: scoreSkill(s, currentCls, currentArch)})).sort((a,b)=>b.sc.score-a.sc.score);
   const rankOf = {};
@@ -1128,7 +1132,19 @@ document.getElementById('saveConfirm').onclick = () => {
 document.getElementById('saveModal').addEventListener('click', e => {
   if (e.target === document.getElementById('saveModal')) document.getElementById('saveModal').classList.remove('show');
 });
-document.getElementById('skillKw').oninput = () => renderPicker('skillPicker');
+// 搜索框防抖 + 焦点保持（移动端 IME 输入大列表重渲染时防失焦）
+function bindSearchInput(input, fn) {
+  let t = null;
+  input.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const wasFocused = document.activeElement === input;
+      fn();
+      if (wasFocused) { try { input.focus({ preventScroll: true }); } catch(e) {} }
+    }, 120);
+  });
+}
+bindSearchInput(document.getElementById('skillKw'), () => renderPicker('skillPicker'));
 document.getElementById('btnReset').onclick = () => { state = {}; renderAll(); };
 document.getElementById('btnApplyBuild').onclick = () => {
   const b = buildOf(currentCls, currentArch);
@@ -1142,10 +1158,10 @@ document.getElementById('btnApplyBuild').onclick = () => {
 // ---------- 移动端事件 ----------
 document.getElementById('searchTrigger').onclick = openSearchModal;
 document.getElementById('smClose').onclick = closeSearchModal;
-document.getElementById('smKw').oninput = () => {
+bindSearchInput(document.getElementById('smKw'), () => {
   if (!document.getElementById('smKw').value.trim()) closeSearchModal();  // 清空自动关闭
   else renderPicker('smPicker');
-};
+});
 // 搜索 Tab 切换（桌面内嵌 + 手机弹窗共用）
 const TAB_LABEL = { skill:'🔍 搜索技能，点「＋」加点（可叠多层）', rune:'符文（保留最近 2 个，选第 3 个自动顶掉最旧的；槽位倍率 ×1/×2）', curse:'符文诅咒（保留最近 2 个，选第 3 个自动顶掉最旧的；倍率 ×1/×2）', artifact:'神器（每小局获得 1 个、可重复，加成跨小局持续累积；点击 +1，上限 12）' };
 function syncPickerTabs() {
@@ -1315,12 +1331,13 @@ function initSharedUrl() {
 
 // ---------- 初始化 ----------
 loadCustomBuilds();
-loadSimState();   // 恢复上次实时加点状态（URL 参数/分享链接优先覆盖）
+loadSimState();   // 恢复上次实时加点状态（职业/流派/加点/符文/神器；URL 参数/分享链接优先覆盖）
 const q = new URLSearchParams(location.search);
 const clsQ = q.get('cls');
-currentCls = (clsQ && D.classes.some(c=>c.id===clsQ)) ? clsQ : D.classes[0].id;
+if (clsQ && D.classes.some(c=>c.id===clsQ)) currentCls = clsQ;          // URL 职业优先
+if (!currentCls || !D.classes.some(c=>c.id===currentCls)) currentCls = D.classes[0].id;  // 兜底默认
 clsSel.value = currentCls;
-fillArchetypes();
+fillArchetypes();   // 保留 loadSimState 恢复的流派（若在当前职业流派列表中）
 renderArchBadge();
 renderAll();
 initSharedUrl();

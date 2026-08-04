@@ -121,9 +121,20 @@ function render() {
   document.querySelectorAll('.upg-note').forEach(n => n.onclick = () => n.classList.toggle('open'));
   document.getElementById('countInfo').textContent = `共 ${rows.length} 个技能（通用 ${D.shops.reduce((a,s)=>a+s.skills.length,0)} + 职业专属 ${D.classes.reduce((a,c)=>a+(D.class_upgrades[c.id]||[]).length,0)}）`;
 }
+// 搜索框防抖 + 焦点保持（移动端 IME 输入大列表重渲染时防失焦）
+function bindSearchInput(input, fn) {
+  let t = null;
+  input.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const wasFocused = document.activeElement === input;
+      fn();
+      if (wasFocused) { try { input.focus({ preventScroll: true }); } catch(e) {} }
+    }, 120);
+  });
+}
+bindSearchInput(document.getElementById('kw'), render);
 shopSel.onchange = render; rarFilter.onchange = render; clsSel.onchange = render;
-document.getElementById('kw').oninput = render;
-render();
 
 // ---------- Boss / 小怪图鉴 ----------
 const ELEM_ZH = { 'PHYSICAL': '物理', 'FIRE': '火', 'FROST': '冰', 'ELECTRIC': '雷', 'LUMINOUS': '光', 'SHADOW': '暗', 'POISON': '毒' };
@@ -150,7 +161,7 @@ function renderBosses() {
   document.getElementById('bossesPanel').innerHTML = legend + search + (bs.length ? grid : `<p style="color:var(--text-dim)">无匹配 Boss。</p>`);
   const kw = document.getElementById('bossKw');
   kw.value = bossKw;
-  kw.oninput = () => { bossKw = kw.value.trim().toLowerCase(); renderBosses(); };
+  bindSearchInput(kw, () => { bossKw = kw.value.trim().toLowerCase(); renderBosses(); });
   document.querySelectorAll('.boss-card').forEach(card => card.onclick = () => {
     bossOpen = bossOpen === card.dataset.boss ? null : card.dataset.boss;
     renderBosses();
@@ -208,7 +219,7 @@ function renderEnemies() {
     + bossRelHtml;
   const kw = document.getElementById('enemyKw');
   kw.value = enemyKw;
-  kw.oninput = () => { enemyKw = kw.value.trim().toLowerCase(); renderEnemies(); };
+  bindSearchInput(kw, () => { enemyKw = kw.value.trim().toLowerCase(); renderEnemies(); });
 }
 function switchTab(t) {
   document.querySelectorAll('.upg-tab').forEach(b => b.classList.remove('active'));
