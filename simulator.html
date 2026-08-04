@@ -1006,6 +1006,34 @@ document.getElementById('detailModal').addEventListener('click', e => {
   if (e.target === document.getElementById('detailModal')) closeDetail();  // 点遮罩关闭
 });
 
+// 全平台复制（clipboard API + execCommand 兜底，兼容 http/localhost 与手机浏览器）
+function copyText(text) {
+  return new Promise(resolve => {
+    const done = ok => resolve(ok);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => done(true)).catch(() => done(fallbackCopy(text)));
+    } else done(fallbackCopy(text));
+  });
+}
+function fallbackCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) { return false; }
+}
+
 // 分享链接（密文）
 document.getElementById('btnShare').onclick = () => {
   const total = Object.values(state).reduce((a, n) => a + n, 0);
@@ -1013,18 +1041,16 @@ document.getElementById('btnShare').onclick = () => {
   const code = encodeShareBuild();
   // code 字符集（字母数字 % . , =）全部 URL 安全，直接拼接（不再二次编码，保证 ?b= 取出与 sig 完全一致）
   const url = location.origin + location.pathname + '?b=' + code;
-  // 复制到剪贴板
-  const done = () => {
+  // 复制到剪贴板（兼容手机/电脑）
+  copyText(url).then(ok => {
     const linkBox = document.getElementById('shareBanner');
-    linkBox.innerHTML = `<div class="sb-line">✅ 分享链接已复制（含加点密文），发给朋友即可直接预览：</div>
+    linkBox.innerHTML = `<div class="sb-line">${ok ? '✅ 分享链接已复制' : '⚠️ 自动复制失败，请长按/手动复制下方链接：'}</div>
       <div class="sb-link">${url}</div>
-      <div class="sb-actions"><button id="sbClose">✕ 关闭</button></div>`;
+      <div class="sb-actions"><button id="sbCopy2">📋 再复制一次</button><button id="sbClose">✕ 关闭</button></div>`;
     linkBox.style.display = 'block';
+    document.getElementById('sbCopy2').onclick = () => copyText(url).then(ok2 => { if (ok2) document.getElementById('sbCopy2').textContent = '✅ 已复制'; });
     document.getElementById('sbClose').onclick = () => linkBox.style.display = 'none';
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(done).catch(() => done());
-  } else done();
+  });
 };
 
 // 初始化：支持分享链接 ?b=密文（必须在 loadCustomBuilds 之后）

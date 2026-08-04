@@ -2492,6 +2492,110 @@ const ECLIPTICA_DATA = {
   },
   {
    "classId": "gunmancer",
+   "archetypeId": "bililightgun",
+   "archetype": "光枪流（B站）",
+   "patch": "v0.51 (2026-07-29)",
+   "title": "光属性重炮：Luminous 277% 实测天赋",
+   "source": "B站《光枪沉浸式输出三分半狂打20w+，到底是谁在诋毁光枪啊！》（UP 灵芝dayo，2026-07-12）+ 评论区天赋图与机制讨论",
+   "must": [
+    {
+     "id": "swift_hands",
+     "count": 10,
+     "reason": "攻速 +15%/层，实机 192% 攻速——光枪 DPS 核心"
+    },
+    {
+     "id": "iq_too_high",
+     "count": 4,
+     "reason": "全属性 +25%（评论：光枪熟练才 +7~8%，被 IQ 拉爆，是替代光枪熟练的正解）"
+    },
+    {
+     "id": "luminous_aspect",
+     "count": 3,
+     "reason": "光属性形态核心——实机 Luminous Damage 277%，打暗弱点怪 20w+ 输出的来源"
+    },
+    {
+     "id": "conductive_armor",
+     "count": 3,
+     "reason": "实机 Physical Defense 296%，站桩输出的生存保障"
+    },
+    {
+     "id": "fluffy",
+     "count": 2,
+     "reason": "生命 +10/层，配合站桩输出防暴毙"
+    },
+    {
+     "id": "glass_cannon",
+     "count": 1,
+     "reason": "总伤害 +35%（配高攻速收益最大）"
+    },
+    {
+     "id": "sorcerers_mastery",
+     "count": 1,
+     "reason": "元素伤害 +8%"
+    },
+    {
+     "id": "berserker_soul_ranged",
+     "count": 1,
+     "reason": "远程狂战魂：攻速大幅提升（站桩打法）"
+    },
+    {
+     "id": "eagle_eye",
+     "count": 1,
+     "reason": "弹速提升，光枪手感"
+    },
+    {
+     "id": "last_stand",
+     "count": 1,
+     "reason": "一血保命"
+    },
+    {
+     "id": "life_leech",
+     "count": 1,
+     "reason": "吸血续航"
+    },
+    {
+     "id": "big_and_round",
+     "count": 1,
+     "reason": "击退抗性 +50%，站桩不被推走"
+    },
+    {
+     "id": "warriors_will",
+     "count": 1,
+     "reason": "伤害 +25%（战士意志）"
+    },
+    {
+     "id": "clutch_or_kick",
+     "count": 1,
+     "reason": "随机高收益大天赋"
+    },
+    {
+     "id": "volatile_tenacity",
+     "count": 1,
+     "reason": "不稳定韧性保命"
+    },
+    {
+     "id": "vitality",
+     "count": 1,
+     "reason": "生命 +25"
+    },
+    {
+     "id": "pocket_abacus",
+     "count": 1,
+     "reason": "点数计算/暴击联动"
+    }
+   ],
+   "nice": [],
+   "avoid": [
+    {
+     "id": "gm_prof_antimatter",
+     "reason": "光枪熟练不加：shift 飞天太慢反而降 DPS，属性伤害 +7~8% 被 IQ 太高（+25%）完爆（评论区 yohane_bili 机制分析）"
+    }
+   ],
+   "playstyle": "站桩光炮流：核心是 Luminous 光属性伤害（实机 277%）+ 攻速（192%）——天赋图来源玩家实测 3 分半狂打 20w+ 输出。注意点：不点光枪熟练（shift 空中射击降 DPS）、暴击率仅 2%（不堆暴击，纯光伤碾压）；配 4 件神器：加密档案×3、轮回之轮×6、HC 装甲板×2、太阳圣杯×1（天赋图右下，跨小局累积）。来源：B站 灵芝dayo 光枪输出视频 + 评论区天赋图（灵芝dayo 分享，2026-07-13）。",
+   "reroll": ""
+  },
+  {
+   "classId": "gunmancer",
    "archetypeId": "bilidualgun",
    "archetype": "双枪流（B站）",
    "patch": "v0.51 (2026-07-29)",
