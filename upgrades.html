@@ -22,30 +22,40 @@
 </header>
 <main>
   <div class="page-head">
-    <h1>升级图鉴（技能 ↔ 点位查询）</h1>
-    <p>3 个商店点位（世界狭间 NPC）：<b>忍耐之晶</b>（生存）、<b>机动之晶</b>（机动）、<b>时空法师</b>（攻击属性 + 各职业专属升级）。可按商店、稀有度、关键词筛选；技能名保留中/英/日三语，游戏内按英文名对照。</p>
+    <h1>升级图鉴</h1>
   </div>
 
   <div class="card">
-    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px">
-      <select id="shopFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button id="tabSkills" class="upg-tab active">⚔️ 技能图鉴</button>
+      <button id="tabBosses" class="upg-tab">👹 Boss 图鉴</button>
+      <button id="tabEnemies" class="upg-tab">🐛 小怪图鉴</button>
+    </div>
+    <div id="skillsPanel">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <select id="shopFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;min-width:0">
         <option value="all">全部商店</option>
       </select>
-      <select id="rarFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px">
+      <select id="rarFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;min-width:0">
         <option value="all">全部稀有度</option>
         <option value="Common">Common 普通</option>
         <option value="Rare">Rare 稀有</option>
         <option value="Legendary">Legendary 传说</option>
       </select>
-      <select id="clsFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <select id="clsFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;flex:0 0 auto;max-width:45%">
         <option value="all">全部职业（含通用）</option>
       </select>
-      <input type="text" id="kw" class="search-box" placeholder="🔍 搜索技能名（中/英/日）或效果关键词…" style="flex:1; margin-bottom:0">
+      <input type="text" id="kw" class="search-box" placeholder="🔍 搜索技能名（中/英/日）或效果关键词…" style="flex:1;margin-bottom:0;min-width:0">
     </div>
     <div style="overflow-x:auto">
     <div id="skillGrid" class="upg-grid"></div>
     </div>
     <div id="countInfo" class="tip" style="margin-top:10px"></div>
+    </div>
+    <div id="bossesPanel" style="display:none"></div>
+    <div id="enemiesPanel" style="display:none"></div>
   </div>
 </main>
 <nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class="active"><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class=""><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
@@ -112,6 +122,88 @@ function render() {
 shopSel.onchange = render; rarFilter.onchange = render; clsSel.onchange = render;
 document.getElementById('kw').oninput = render;
 render();
+
+// ---------- Boss / 小怪图鉴 ----------
+const ELEM_ZH = { 'PHYSICAL': '物理', 'FIRE': '火', 'FROST': '冰', 'ELECTRIC': '雷', 'LUMINOUS': '光', 'SHADOW': '暗', 'POISON': '毒' };
+const ELEM_COLOR = { 'PHYSICAL': '#aaa', 'FIRE': '#ff9a3c', 'FROST': '#7cd4ff', 'ELECTRIC': '#ffe14d', 'LUMINOUS': '#f0e58c', 'SHADOW': '#b45cf5', 'POISON': '#f02ae0' };
+function elemName(t) { return ELEM_ZH[t] || t; }
+function affChip(a, val) {
+  const st = val.status === 'WEAK' ? 'weak' : val.status === 'RESIST' ? 'resist' : 'neutral';
+  return `<span class="aff aff-${st}" title="${a}">${elemName(a)} <b>${val.status==='WEAK'?'×1.25 弱点':val.status==='RESIST'?'×0.7 抗性':'×1'}</b></span>`;
+}
+let bossKw = '', bossOpen = null;
+function renderBosses() {
+  const bs = (D.bosses||[]).filter(b => !bossKw || (b.name + ' ' + (b.desc||'') + ' ' + (b.zh_mech||'') + ' ' + (b.zh_tips||'')).toLowerCase().includes(bossKw));
+  const legend = `<div class="tip" style="margin-bottom:12px">共 ${(D.bosses||[]).length} 个 Boss · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Bosses" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。克制：<span class="aff aff-weak">×1.25 弱点</span> <span class="aff aff-neutral">×1</span> <span class="aff aff-resist">×0.7 抗性</span>；<b style="color:#b45cf5">紫色</b>攻击无视防御。点击卡片展开详情。</div>`;
+  const search = `<div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="bossKw" class="search-box" placeholder="🔍 搜索 Boss（名称/称号/机制/攻略）…" style="flex:1;margin-bottom:0;min-width:0"></div>`;
+  const grid = `<div class="upg-grid">` + bs.map(b => `
+    <div class="upg-card boss-card" data-boss="${b.id}" style="cursor:pointer">
+      <div class="upg-head">
+        <img src="${b.icon}" class="upg-icon" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="upg-names"><b>${esc(b.name)}</b>${b.desc ? `<span class="en">${esc(b.desc)}</span>` : ''}</div>
+        <span class="rar rar-Legendary">${esc(b.phase||'')}</span>
+      </div>
+      ${bossOpen === b.id ? bossDetail(b) : ''}
+    </div>`).join('') + `</div>`;
+  document.getElementById('bossesPanel').innerHTML = legend + search + (bs.length ? grid : `<p style="color:var(--text-dim)">无匹配 Boss。</p>`);
+  const kw = document.getElementById('bossKw');
+  kw.value = bossKw;
+  kw.oninput = () => { bossKw = kw.value.trim().toLowerCase(); renderBosses(); };
+  document.querySelectorAll('.boss-card').forEach(card => card.onclick = () => {
+    bossOpen = bossOpen === card.dataset.boss ? null : card.dataset.boss;
+    renderBosses();
+  });
+}
+function bossDetail(b) {
+  return `
+    <div class="boss-detail">
+      <div class="upg-meta" style="margin-top:8px">
+        ${b.hp ? `<span class="tag">HP ${b.hp}</span>` : ''}
+        ${b.dmg_zh ? `<span class="tag">伤害：<b>${esc(b.dmg_zh)}</b></span>` : ''}
+        ${b.phases ? `<span class="tag">阶段：${b.phases}</span>` : ''}
+        ${b.inflicts ? `<span class="tag">施加：${esc(b.inflicts)}</span>` : ''}
+      </div>
+      ${Object.keys(b.affinity||{}).length ? `<div class="upg-meta" style="margin-top:6px"><b style="font-size:12px;color:var(--text-dim);align-self:center">克制：</b>${Object.entries(b.affinity).map(([a,v]) => affChip(a, v)).join('')}</div>` : ''}
+      ${b.zh_mech ? `<div class="boss-sec"><h4>🎯 阶段机制</h4><p>${esc(b.zh_mech)}</p></div>` : ''}
+      ${b.zh_tips ? `<div class="boss-sec"><h4>🛡 应对攻略</h4><p>${esc(b.zh_tips)}</p></div>` : ''}
+      ${b.strategy ? `<div class="upg-note">📜 英文原文（wiki）：${esc(b.strategy.replace(/\n+/g,' ').slice(0,300))}${b.strategy.length>300?'…':''}</div>` : ''}
+    </div>`;
+}
+let enemyKw = '';
+function renderEnemies() {
+  const es = (D.enemies||[]).filter(e => !enemyKw || (e.name + ' ' + (e.damage||'')).toLowerCase().includes(enemyKw));
+  const search = `<div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="enemyKw" class="search-box" placeholder="🔍 搜索小怪（名称/伤害类型）…" style="flex:1;margin-bottom:0;min-width:0"></div>`;
+  const grid = `<div class="upg-grid">` + es.map(e => `
+    <div class="upg-card">
+      <div class="upg-head">
+        <img src="${e.icon}" class="upg-icon" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="upg-names"><b>${esc(e.name)}</b></div>
+        <span class="rar">${esc(e.phase||'')}</span>
+      </div>
+      ${e.dmg_zh ? `<div class="upg-effect" style="margin-top:6px">伤害：${esc(e.dmg_zh)}</div>` : ''}
+    </div>`).join('') + `</div>`;
+  document.getElementById('enemiesPanel').innerHTML =
+    `<div class="tip" style="margin-bottom:12px">共 ${(D.enemies||[]).length} 种敌人 · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Enemies" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。敌人按阶段出现，部分可施加异常状态。</div>`
+    + search + (es.length ? grid : `<p style="color:var(--text-dim)">无匹配敌人。</p>`);
+  const kw = document.getElementById('enemyKw');
+  kw.value = enemyKw;
+  kw.oninput = () => { enemyKw = kw.value.trim().toLowerCase(); renderEnemies(); };
+}
+function switchTab(t) {
+  document.querySelectorAll('.upg-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tabSkills').classList.toggle('active', t === 'skills');
+  document.getElementById('tabBosses').classList.toggle('active', t === 'bosses');
+  document.getElementById('tabEnemies').classList.toggle('active', t === 'enemies');
+  document.getElementById('skillsPanel').style.display = t === 'skills' ? '' : 'none';
+  document.getElementById('bossesPanel').style.display = t === 'bosses' ? '' : 'none';
+  document.getElementById('enemiesPanel').style.display = t === 'enemies' ? '' : 'none';
+  if (t === 'bosses') renderBosses();
+  if (t === 'enemies') renderEnemies();
+}
+document.getElementById('tabSkills').onclick = () => switchTab('skills');
+document.getElementById('tabBosses').onclick = () => switchTab('bosses');
+document.getElementById('tabEnemies').onclick = () => switchTab('enemies');
+switchTab('skills');
 </script>
 <script src="site.js"></script>
 </body>
