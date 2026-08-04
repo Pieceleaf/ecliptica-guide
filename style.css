@@ -27,9 +27,12 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;   /* 兜底：任何内容都不允许撑宽页面（横向溢出） */
 }
-main { flex: 1 0 auto; width: 100%; }
+html { overflow-x: hidden; }
+main { flex: 1 0 auto; width: 100%; min-width: 0; }
 footer { flex-shrink: 0; }
+#prioList, .card, .prio-cols { min-width: 0; }
 a { color: var(--blue); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
@@ -120,8 +123,9 @@ td .jp { color: var(--text-dim); font-size: 11px; opacity: .8; display: block; }
 .build-item .why { color: var(--text-dim); font-size: 13px; }
 
 /* 模拟器 */
-.sim-layout { display: grid; grid-template-columns: 320px 1fr; gap: 18px; align-items: start; }
-@media (max-width: 900px) { .sim-layout { grid-template-columns: 1fr; } }
+.sim-layout { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.sim-layout > * { min-width: 0; }
+@media (max-width: 900px) { .sim-layout { grid-template-columns: minmax(0, 1fr); } }
 .control-panel { position: sticky; top: 70px; }
 .select-row { margin-bottom: 14px; }
 .select-row label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 4px; }
@@ -233,8 +237,8 @@ td .jp { color: var(--text-dim); font-size: 11px; opacity: .8; display: block; }
 .si-minus:hover { border-color: var(--red); color: var(--red); }
 
 /* 优先级排序：三列布局（左中右 = 三个商店） */
-.prio-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; align-items: start; }
-@media (max-width: 900px) { .prio-cols { grid-template-columns: 1fr; } }
+.prio-cols { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .prio-cols { grid-template-columns: minmax(0,1fr); } }
 .prio-col { border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: var(--bg2); min-width: 0; }
 .prio-col h4 {
   font-size: 13px; color: var(--accent); margin: 0 0 8px;
@@ -368,12 +372,12 @@ footer a { color: var(--text-dim); }
   .ver-tag { margin-left: auto; font-size: 11px; }
   main { padding: 16px 12px 84px; }
   .page-head h1 { font-size: 22px; }
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: minmax(0,1fr); }
   .card { padding: 14px; }
   table { font-size: 12.5px; }
   th, td { padding: 6px 8px; }
   /* 模拟器：单列堆叠，控制面板不再吸顶 */
-  .sim-layout { grid-template-columns: 1fr; }
+  .sim-layout { grid-template-columns: minmax(0,1fr); }
   .control-panel { position: static; }
   .skill-picker { max-height: 260px; }
   .prio-row { flex-wrap: wrap; }
