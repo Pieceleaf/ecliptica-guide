@@ -1478,337 +1478,464 @@ ENEMIES = [
  {
   "id": "fly",
   "name": "Fly",
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [],
   "phase": "Prime",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/FlyBeelze.png",
-  "dmg_zh": "物理"
+  "icon": "icons/enemy/Fly.png"
  },
  {
   "id": "voltwall",
   "name": "Voltwall",
+  "damage": "雷",
+  "debuffs": [
+   "麻痹"
+  ],
+  "mech": [],
   "phase": "Prime",
-  "damage": "ELECTRIC",
-  "icon": "icons/enemy/Status_Stun.png",
-  "dmg_zh": "雷"
+  "icon": "icons/enemy/Status_Stun.png"
  },
  {
   "id": "frost_sac",
   "name": "Frost Sac",
+  "damage": "冰",
+  "debuffs": [
+   "冰冻"
+  ],
+  "mech": [],
   "phase": "Prime",
-  "damage": "FROST",
-  "icon": "icons/enemy/Status_Frozen.png",
-  "dmg_zh": "冰"
+  "icon": "icons/enemy/Status_Frozen.png"
  },
  {
   "id": "peltapod",
   "name": "Peltapod",
+  "damage": "物理",
+  "debuffs": [
+   "出血"
+  ],
+  "mech": [
+   "正面格挡"
+  ],
   "phase": "Prime",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/Status_Bleed.png",
-  "dmg_zh": "物理"
+  "icon": "icons/enemy/Status_Bleed.png"
  },
  {
   "id": "acolyte",
   "name": "Acolyte",
+  "damage": "物理、毒",
+  "debuffs": [
+   "中毒"
+  ],
+  "mech": [],
   "phase": "Late Primal",
-  "damage": "PHYSICAL, POISON",
-  "icon": "icons/enemy/Status_Poison.png",
-  "dmg_zh": "物理、毒"
+  "icon": "icons/enemy/Status_Poison.png"
  },
  {
   "id": "lava_sac",
   "name": "Lava Sac",
+  "damage": "火",
+  "debuffs": [
+   "灼烧"
+  ],
+  "mech": [],
   "phase": "Late Primal",
-  "damage": "FIRE",
-  "icon": "icons/enemy/Status_Fire.png",
-  "dmg_zh": "火"
+  "icon": "icons/enemy/Status_Fire.png"
  },
  {
   "id": "too_tired",
   "name": "Too Tired",
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [],
   "phase": "Late Primal",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/TooTired.png",
-  "dmg_zh": "物理"
+  "icon": "icons/enemy/TooTired.png"
  },
  {
   "id": "cone_bomber",
   "name": "Cone Bomber",
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [
+   "紫色攻击（无视防御）"
+  ],
   "phase": "Penumbra",
-  "damage": "PHYSICAL, PURPLE",
-  "icon": "icons/enemy/ConeBomber.png",
-  "dmg_zh": "物理、PURPLE"
+  "icon": "icons/enemy/ConeBomber.png"
  },
  {
   "id": "cone_enforcer",
   "name": "Cone Enforcer",
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [
+   "红绿灯机制（红灯停）",
+   "红绿灯机制（绿灯行"
+  ],
   "phase": "Penumbra",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/Status_Stop.png",
-  "dmg_zh": "物理"
+  "icon": "icons/enemy/Status_Stop.png"
  },
  {
   "id": "ice_squid",
   "name": "Ice Squid",
+  "damage": "冰",
+  "debuffs": [
+   "冰冻"
+  ],
+  "mech": [],
   "phase": "Penumbra",
-  "damage": "FROST",
-  "icon": "icons/enemy/Status_Frozen.png",
-  "dmg_zh": "冰"
+  "icon": "icons/enemy/Status_Frozen.png"
  },
  {
   "id": "black_lily_token",
   "name": "Black Lily Token",
+  "damage": "光",
+  "debuffs": [
+   "虚弱"
+  ],
+  "mech": [],
   "phase": "Penumbra",
-  "damage": "LUMINOUS",
-  "icon": "icons/enemy/Status_Weak.png",
-  "dmg_zh": "光"
+  "icon": "icons/enemy/Status_Weak.png"
  },
  {
   "id": "black_lily_token",
   "name": "Black Lily Token",
+  "damage": "光",
+  "debuffs": [
+   "虚弱"
+  ],
+  "mech": [],
   "phase": "Penumbra",
-  "damage": "LUMINOUS",
-  "icon": "icons/enemy/Status_Weak.png",
-  "dmg_zh": "光"
+  "icon": "icons/enemy/Status_Weak.png"
  },
  {
   "id": "carnie",
   "name": "Carnie",
+  "damage": "火、毒",
+  "debuffs": [
+   "中毒"
+  ],
+  "mech": [
+   "紫色攻击（无视防御）"
+  ],
   "phase": "Penumbra",
-  "damage": "FIRE, POISON",
-  "icon": "icons/enemy/Status_Fire.png",
-  "dmg_zh": "火、毒"
+  "icon": "icons/enemy/Status_Fire.png"
  },
  {
   "id": "curious_creature",
   "name": "Curious Creature",
+  "damage": "物理",
+  "debuffs": [
+   "出血"
+  ],
+  "mech": [
+   "正面格挡"
+  ],
   "phase": "Penumbra",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/Status_Bleed.png",
-  "dmg_zh": "物理"
+  "icon": "icons/enemy/Status_Bleed.png"
  },
  {
   "id": "voltwalker",
   "name": "Voltwalker",
+  "damage": "雷",
+  "debuffs": [
+   "麻痹"
+  ],
+  "mech": [],
   "phase": "Penumbra",
-  "damage": "ELECTRIC",
-  "icon": "icons/enemy/Status_Stun.png",
-  "dmg_zh": "雷"
+  "icon": "icons/enemy/Status_Stun.png"
  },
  {
   "id": "lizord",
   "name": "Lizord",
+  "damage": "火",
+  "debuffs": [
+   "灼烧"
+  ],
+  "mech": [],
   "phase": "Late Penumbra",
-  "damage": "FIRE",
-  "icon": "icons/enemy/Status_Fire.png",
-  "dmg_zh": "火"
+  "icon": "icons/enemy/Status_Fire.png"
  },
  {
   "id": "manalyte",
   "name": "Manalyte",
+  "damage": "暗",
+  "debuffs": [
+   "破甲"
+  ],
+  "mech": [],
   "phase": "Late Penumbra",
-  "damage": "SHADOW",
-  "icon": "icons/enemy/Status_Breach.png",
-  "dmg_zh": "暗"
+  "icon": "icons/enemy/Status_Breach.png"
  },
  {
   "id": "ash_horn",
   "name": "Ash Horn",
+  "damage": "火",
+  "debuffs": [
+   "灼烧"
+  ],
+  "mech": [],
   "phase": "Antumbra",
-  "damage": "FIRE",
-  "icon": "icons/enemy/Status_Fire.png",
-  "dmg_zh": "火"
+  "icon": "icons/enemy/Status_Fire.png"
  },
  {
   "id": "concrete_revanent",
   "name": "Concrete Revanent",
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [],
   "phase": "Antumbra",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/Concrete_Golem.png",
-  "dmg_zh": "物理"
+  "icon": "icons/enemy/Concrete_Golem.png"
  },
  {
   "id": "mother_sac",
   "name": "Mother Sac",
+  "damage": "火、冰",
+  "debuffs": [
+   "冰冻"
+  ],
+  "mech": [],
   "phase": "Antumbra",
-  "damage": "FIRE and FROST",
-  "icon": "icons/enemy/Status_Fire.png",
-  "dmg_zh": "火、冰"
+  "icon": "icons/enemy/Status_Fire.png"
  },
  {
   "id": "volt_buster",
   "name": "Volt Buster",
+  "damage": "雷",
+  "debuffs": [
+   "麻痹"
+  ],
+  "mech": [],
   "phase": "Antumbra",
-  "damage": "ELECTRIC",
-  "icon": "icons/enemy/Status_Stun.png",
-  "dmg_zh": "雷"
+  "icon": "icons/enemy/Status_Stun.png"
  },
  {
   "id": "aspiopod",
   "name": "Aspiopod",
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [
+   "正面格挡"
+  ],
   "phase": "Umbra",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/Aspiopod.png",
-  "dmg_zh": "物理"
+  "icon": "icons/enemy/Aspiopod.png"
  },
  {
   "id": "black_virtue",
   "name": "Black Virtue",
+  "damage": "光",
+  "debuffs": [
+   "衰减"
+  ],
+  "mech": [],
   "phase": "Umbra",
-  "damage": "LUMINOUS",
-  "icon": "icons/enemy/Status_Weak.png",
-  "dmg_zh": "光"
+  "icon": "icons/enemy/Status_Weak.png"
  },
  {
   "id": "big_sigma",
   "name": "Big Sigma",
+  "damage": "光",
+  "debuffs": [
+   "衰减"
+  ],
+  "mech": [],
   "phase": "Umbra",
-  "damage": "LUMINOUS",
-  "icon": "icons/enemy/Status_Weak.png",
-  "dmg_zh": "光"
+  "icon": "icons/enemy/Status_Weak.png"
  },
  {
   "id": "cloud_dragonkin",
   "name": "Cloud Dragonkin",
+  "damage": "火、雷",
+  "debuffs": [
+   "麻痹"
+  ],
+  "mech": [],
   "phase": "Umbra",
-  "damage": "FIRE and ELECTRIC",
-  "icon": "icons/enemy/Status_Fire.png",
-  "dmg_zh": "火、雷"
+  "icon": "icons/enemy/Status_Fire.png"
  },
  {
   "id": "elder_manalyte",
   "name": "Elder Manalyte",
+  "damage": "暗",
+  "debuffs": [
+   "破甲"
+  ],
+  "mech": [],
   "phase": "Umbra",
-  "damage": "SHADOW",
-  "icon": "icons/enemy/Status_Breach.png",
-  "dmg_zh": "暗"
+  "icon": "icons/enemy/Status_Breach.png"
  },
  {
   "id": "shamanic_compound",
   "name": "Shamanic Compound",
+  "damage": "物理、毒",
+  "debuffs": [
+   "衰减"
+  ],
+  "mech": [],
   "phase": "Umbra",
-  "damage": "PHYSICAL, POISON",
-  "icon": "icons/enemy/Status_Poison.png",
-  "dmg_zh": "物理、毒"
+  "icon": "icons/enemy/Status_Poison.png"
  },
  {
   "id": "eclipse_warden",
   "name": "Eclipse Warden",
+  "damage": "光",
+  "debuffs": [
+   "衰减"
+  ],
+  "mech": [],
   "phase": "Late Umbra",
-  "damage": "LUMINOUS",
-  "icon": "icons/enemy/Status_Weak.png",
-  "dmg_zh": "光"
+  "icon": "icons/enemy/Status_Weak.png"
  },
  {
   "id": "peltapod_guard",
   "name": "Peltapod Guard",
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [
+   "可自增益（强力+坚守）",
+   "自增益：强力",
+   "自增益：坚守"
+  ],
   "phase": "Eclipse",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/Status_Empower.png",
-  "dmg_zh": "物理"
+  "icon": "icons/enemy/Status_Empower.png"
  },
  {
   "id": "nightwalker",
   "name": "Nightwalker",
+  "damage": "暗",
+  "debuffs": [
+   "破甲"
+  ],
+  "mech": [],
   "phase": "Eclipse",
-  "damage": "SHADOW",
-  "icon": "icons/enemy/Status_Breach.png",
-  "dmg_zh": "暗"
+  "icon": "icons/enemy/Status_Breach.png"
  },
  {
   "id": "black_chimera",
   "name": "Black Chimera",
+  "damage": "光",
+  "debuffs": [
+   "衰减"
+  ],
+  "mech": [],
   "phase": "Late Eclipse",
-  "damage": "LUMINOUS",
-  "icon": "icons/enemy/Status_Weak.png",
-  "dmg_zh": "光"
- },
+  "icon": "icons/enemy/Status_Weak.png"
+ }
+]
+BOSS_ENEMIES = [
  {
   "id": "fly",
   "name": "Fly",
-  "phase": "Beelzebub Fight",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/FlyBeelze.png",
-  "dmg_zh": "物理"
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [],
+  "boss": "Beelzebub Fight",
+  "icon": "icons/enemy/FlyBeelze.png"
  },
  {
   "id": "peltapod",
   "name": "Peltapod",
-  "phase": "Vesra Fight",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/Status_Bleed.png",
-  "dmg_zh": "物理"
+  "damage": "物理",
+  "debuffs": [
+   "出血"
+  ],
+  "mech": [],
+  "boss": "Vesra Fight",
+  "icon": "icons/enemy/Status_Bleed.png"
  },
  {
   "id": "peltapod_guard",
   "name": "Peltapod Guard",
-  "phase": "Vesra Fight",
-  "damage": "PHYSICAL",
-  "icon": "icons/enemy/Status_Empower.png",
-  "dmg_zh": "物理"
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [
+   "可自增益（强力+坚守）",
+   "自增益：强力",
+   "自增益：坚守"
+  ],
+  "boss": "Vesra Fight",
+  "icon": "icons/enemy/Status_Empower.png"
  },
  {
   "id": "black_lily_tokens",
   "name": "Black Lily Tokens",
-  "phase": "The Black Lily Fight",
-  "damage": "LUMINOUS",
-  "icon": "icons/enemy/Status_Weak.png",
-  "dmg_zh": "光"
+  "damage": "光",
+  "debuffs": [
+   "虚弱"
+  ],
+  "mech": [],
+  "boss": "The Black Lily Fight",
+  "icon": "icons/enemy/Status_Weak.png"
  },
  {
   "id": "disruption_tower",
   "name": "Disruption Tower",
-  "phase": "M-41-D Fight",
-  "damage": "ELECTRIC",
-  "icon": "icons/enemy/Status_Stun.png",
-  "dmg_zh": "雷"
+  "damage": "雷",
+  "debuffs": [
+   "麻痹"
+  ],
+  "mech": [],
+  "boss": "M-41-D Fight",
+  "icon": "icons/enemy/Status_Stun.png"
  },
  {
   "id": "idol_crystal",
   "name": "Idol Crystal",
-  "phase": "Irides Fight",
-  "damage": "ELECTRIC",
-  "icon": "icons/enemy/Status_Stun.png",
-  "dmg_zh": "雷"
+  "damage": "雷",
+  "debuffs": [
+   "麻痹"
+  ],
+  "mech": [],
+  "boss": "Irides Fight",
+  "icon": "icons/enemy/Status_Stun.png"
  },
  {
   "id": "shadow_grouch",
   "name": "Shadow Grouch",
-  "phase": "Golden Grouch Fight",
-  "damage": "Does not Attack",
-  "icon": "icons/enemy/Status_Invincible.png",
-  "dmg_zh": "DOES NOT ATTACK"
+  "damage": "",
+  "debuffs": [],
+  "mech": [],
+  "boss": "Golden Grouch Fight",
+  "icon": "icons/enemy/Status_Invincible.png"
  },
  {
   "id": "elder_manalytes",
   "name": "Elder Manalytes",
-  "phase": "Abaddon Fight",
-  "damage": "SHADOW",
-  "icon": "icons/enemy/Status_Breach.png",
-  "dmg_zh": "暗"
+  "damage": "暗",
+  "debuffs": [
+   "破甲"
+  ],
+  "mech": [],
+  "boss": "Abaddon Fight",
+  "icon": "icons/enemy/Status_Breach.png"
  },
  {
   "id": "opton_guards",
   "name": "Opton Guards",
-  "phase": "Bravera Fight",
-  "damage": "PHYSICAL and ELECTRIC",
-  "icon": "icons/enemy/Status_Bleed.png",
-  "dmg_zh": "物理、雷"
+  "damage": "物理、雷",
+  "debuffs": [
+   "麻痹"
+  ],
+  "mech": [],
+  "boss": "Bravera Fight",
+  "icon": "icons/enemy/Status_Bleed.png"
  },
  {
   "id": "jims_wedge",
   "name": "Jim's Wedge",
-  "phase": "Jim C. Bringer Fight",
-  "damage": "",
-  "icon": "icons/enemy/Wedge.png",
-  "dmg_zh": ""
+  "damage": "物理",
+  "debuffs": [],
+  "mech": [],
+  "boss": "Jim C. Bringer Fight",
+  "icon": "icons/enemy/Wedge.png"
  },
  {
   "id": "the_flipper_mk._ii",
   "name": "The Flipper Mk. II",
-  "phase": "Jim C. Bringer Fight",
-  "damage": "",
-  "icon": "icons/enemy/Status_Fire.png",
-  "dmg_zh": ""
+  "damage": "物理、火",
+  "debuffs": [
+   "灼烧"
+  ],
+  "mech": [],
+  "boss": "Jim C. Bringer Fight",
+  "icon": "icons/enemy/Status_Fire.png"
  }
 ]

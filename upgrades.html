@@ -27,12 +27,12 @@
 
   <div class="card">
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-      <button id="tabSkills" class="upg-tab active">⚔️ 技能图鉴</button>
-      <button id="tabBosses" class="upg-tab">👹 Boss 图鉴</button>
-      <button id="tabEnemies" class="upg-tab">🐛 小怪图鉴</button>
+      <button id="tabSkills" class="upg-tab active">技能</button>
+      <button id="tabBosses" class="upg-tab">BOSS</button>
+      <button id="tabEnemies" class="upg-tab">怪物</button>
     </div>
     <div id="skillsPanel">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
       <select id="shopFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;min-width:0">
         <option value="all">全部商店</option>
       </select>
@@ -42,11 +42,12 @@
         <option value="Rare">Rare 稀有</option>
         <option value="Legendary">Legendary 传说</option>
       </select>
+      <select id="clsFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;min-width:0">
+        <option value="all">全部职业</option>
+        <option value="common">通用</option>
+      </select>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
-      <select id="clsFilter" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;flex:0 0 auto;max-width:45%">
-        <option value="all">全部职业（含通用）</option>
-      </select>
       <input type="text" id="kw" class="search-box" placeholder="🔍 搜索技能名（中/英/日）或效果关键词…" style="flex:1;margin-bottom:0;min-width:0">
     </div>
     <div style="overflow-x:auto">
@@ -91,7 +92,8 @@ function render() {
   let rows = SKILLS.filter(s => {
     if (shop !== 'all' && s.shopId !== shop) return false;
     if (rar !== 'all' && s.rarity !== rar) return false;
-    if (cls !== 'all' && s.classId !== cls) return false;
+    if (cls === 'common') { if (s.classId) return false; }
+    else if (cls !== 'all' && s.classId !== cls) return false;
     if (kw) {
       const hay = (s.zh + ' ' + s.en + ' ' + s.jp + ' ' + s.descZh + ' ' + (s.notes||'')).toLowerCase();
       if (!hay.includes(kw)) return false;
@@ -171,20 +173,37 @@ function bossDetail(b) {
 }
 let enemyKw = '';
 function renderEnemies() {
-  const es = (D.enemies||[]).filter(e => !enemyKw || (e.name + ' ' + (e.damage||'')).toLowerCase().includes(enemyKw));
-  const search = `<div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="enemyKw" class="search-box" placeholder="🔍 搜索小怪（名称/伤害类型）…" style="flex:1;margin-bottom:0;min-width:0"></div>`;
-  const grid = `<div class="upg-grid">` + es.map(e => `
+  const es = (D.enemies||[]).filter(e => !enemyKw || (e.name + ' ' + (e.damage||'') + ' ' + (e.debuffs||[]).join('') + ' ' + (e.mech||[]).join('')).toLowerCase().includes(enemyKw));
+  const search = `<div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="enemyKw" class="search-box" placeholder="🔍 搜索怪物（名称/伤害/异常/机制）…" style="flex:1;margin-bottom:0;min-width:0"></div>`;
+  const card = e => `
     <div class="upg-card">
       <div class="upg-head">
         <img src="${e.icon}" class="upg-icon" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
         <div class="upg-names"><b>${esc(e.name)}</b></div>
         <span class="rar">${esc(e.phase||'')}</span>
       </div>
-      ${e.dmg_zh ? `<div class="upg-effect" style="margin-top:6px">伤害：${esc(e.dmg_zh)}</div>` : ''}
-    </div>`).join('') + `</div>`;
+      ${e.damage ? `<div class="upg-effect" style="margin-top:6px">伤害：<b>${esc(e.damage)}</b></div>` : ''}
+      ${(e.debuffs||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.debuffs.map(d => `<span class="tag" style="border-color:var(--red);color:var(--red)">施加：${esc(d)}</span>`).join('')}</div>` : ''}
+      ${(e.mech||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.mech.map(m => `<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(m)}</span>`).join('')}</div>` : ''}
+    </div>`;
+  const bossRel = (D.boss_enemies||[]).filter(e => !enemyKw || (e.name + ' ' + (e.boss||'') + ' ' + (e.damage||'')).toLowerCase().includes(enemyKw));
+  const bossRelHtml = bossRel.length ? `
+    <h3 style="margin:16px 0 8px;font-size:15px">☠️ Boss 相关敌人（Boss 战中召唤）</h3>
+    <div class="upg-grid">` + bossRel.map(e => `
+    <div class="upg-card">
+      <div class="upg-head">
+        <img src="${e.icon}" class="upg-icon" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="upg-names"><b>${esc(e.name)}</b><span class="en">${esc(e.boss||'')}</span></div>
+      </div>
+      ${e.damage ? `<div class="upg-effect" style="margin-top:6px">伤害：<b>${esc(e.damage)}</b></div>` : ''}
+      ${(e.debuffs||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.debuffs.map(d => `<span class="tag" style="border-color:var(--red);color:var(--red)">施加：${esc(d)}</span>`).join('')}</div>` : ''}
+      ${(e.mech||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.mech.map(m => `<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(m)}</span>`).join('')}</div>` : ''}
+    </div>`).join('') + `</div>` : '';
   document.getElementById('enemiesPanel').innerHTML =
-    `<div class="tip" style="margin-bottom:12px">共 ${(D.enemies||[]).length} 种敌人 · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Enemies" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。敌人按阶段出现，部分可施加异常状态。</div>`
-    + search + (es.length ? grid : `<p style="color:var(--text-dim)">无匹配敌人。</p>`);
+    `<div class="tip" style="margin-bottom:12px">共 ${(D.enemies||[]).length} 种怪物 · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Enemies" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。怪物按阶段出现，部分可施加异常或拥有特殊机制。</div>`
+    + search
+    + (es.length ? `<div class="upg-grid">` + es.map(card).join('') + `</div>` : `<p style="color:var(--text-dim)">无匹配怪物。</p>`)
+    + bossRelHtml;
   const kw = document.getElementById('enemyKw');
   kw.value = enemyKw;
   kw.oninput = () => { enemyKw = kw.value.trim().toLowerCase(); renderEnemies(); };
