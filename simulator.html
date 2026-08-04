@@ -347,35 +347,75 @@ function renderArchBadge() {
   document.getElementById('archBadge').textContent = b ? b.archetype : '未选择流派';
 }
 
-// 流派选择弹窗（手机端）：职业 chips + 流派列表
+// 流派选择弹窗（手机端）：分级展开——职业层 → 流派层 → 选中收起
+let bmMode = 'cls';            // 'cls'=职业层 / 'arch'=流派层
+let bmCls = null;              // 流派层当前职业
+let bmArchExpanded = false;    // 流派层展开/收起
+function openBuildModal() {
+  bmMode = 'cls';              // 每次打开从职业层开始
+  renderBuildModal();
+  document.getElementById('buildModal').classList.add('show');
+}
 function renderBuildModal() {
-  // 职业选择行（chips）
-  document.getElementById('bmClsRow').innerHTML = D.classes.map(c =>
-    `<button class="bm-cls${c.id===currentCls?' active':''}" data-cls="${c.id}">
-      <img src="icons/class_${c.id}.png" alt="">${c.zh}</button>`).join('');
-  document.querySelectorAll('#bmClsRow .bm-cls').forEach(btn => btn.onclick = () => {
-    if (btn.dataset.cls === currentCls) return;
-    currentCls = btn.dataset.cls;
-    clsSel.value = currentCls;
-    state = {};
-    fillArchetypes();
-    renderAll();
-    renderBuildModal();
-  });
-  // 流派列表
-  const bs = buildsOf(currentCls);
-  const cs = customBuilds.filter(b => b.classId === currentCls);
-  const vbs = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
+  const clsRow = document.getElementById('bmClsRow');
+  const box = document.getElementById('buildModalList');
+  if (bmMode === 'cls') {
+    // 职业层：8 个职业按钮（当前职业高亮）
+    clsRow.innerHTML = '';
+    box.innerHTML = D.classes.map(c => `
+      <div class="build-opt bm-cls-opt${c.id===currentCls?' active':''}" data-cls="${c.id}">
+        <img src="icons/class_${c.id}.png" style="width:30px;height:30px;border-radius:6px;object-fit:contain" alt="">
+        <span class="b-opt-name"><b>${c.zh}</b> <small style="color:var(--text-dim)">${c.en}</small></span>
+        <span class="b-opt-src">${c.id===currentCls ? '当前' : ''}</span>
+      </div>`).join('');
+    box.querySelectorAll('.bm-cls-opt').forEach(btn => btn.onclick = () => {
+      // 选择职业：清除之前所选流派，自动展开流派层
+      if (btn.dataset.cls !== currentCls) {
+        currentCls = btn.dataset.cls;
+        clsSel.value = currentCls;
+        state = {};
+        currentArch = null;
+        archSel.value = '';
+        renderArchBadge();
+        renderAll();
+      }
+      bmCls = currentCls;
+      bmMode = 'arch';
+      bmArchExpanded = true;   // 自动展开该职业全部流派
+      renderBuildModal();
+    });
+    return;
+  }
+  // 流派层：顶部当前职业按钮（点击回职业层）+ 流派列表
+  const clsInfo = D.classes.find(c => c.id === bmCls);
+  clsRow.innerHTML = `<button class="bm-cls" id="bmClsBack"><img src="icons/class_${bmCls}.png" alt="">${clsInfo ? clsInfo.zh : ''} <span style="opacity:.7">▾ 换职业</span></button>`;
+  document.getElementById('bmClsBack').onclick = () => { bmMode = 'cls'; renderBuildModal(); };
+  const bs = buildsOf(bmCls);
+  const cs = customBuilds.filter(b => b.classId === bmCls);
+  const vbs = (D.vrct_builds||[]).filter(b => b.classId === bmCls);
+  const curB = buildOf(bmCls, currentArch);
   const opt = b => `
     <div class="build-opt${b.archetypeId===currentArch?' active':''}" data-id="${b.archetypeId}">
       <span class="b-opt-name">${b.archetypeId.startsWith('custom_')?'✏️ ':b.archetypeId.startsWith('vrct_')?'🌐 ':''}${b.archetype}</span>
       <span class="b-opt-src">${b.source ? b.source.split('（')[0] : ''}</span>
       ${b.archetypeId.startsWith('custom_') ? `<span class="b-opt-del" data-del="${b.archetypeId}">🗑</span>` : ''}
     </div>`;
-  document.getElementById('buildModalList').innerHTML =
-    bs.map(opt).join('') +
-    (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义（本浏览器保存）—</div>` + cs.map(opt).join('') : '') +
-    (vbs.length ? `<div class="tip" style="margin:6px 0">— 🌐 社区 Build（VRCT 共享市场）—</div>` + vbs.map(opt).join('') : '');
+  let listHtml;
+  if (bmArchExpanded) {
+    // 展开：标准流派 → 自定义 → 社区 Build
+    listHtml = bs.map(opt).join('') +
+      (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义（本浏览器保存）—</div>` + cs.map(opt).join('') : '') +
+      (vbs.length ? `<div class="tip" style="margin:6px 0">— 🌐 社区 Build（VRCT 共享市场）—</div>` + vbs.map(opt).join('') : '');
+  } else if (curB) {
+    // 收起：只显示已选流派按钮（点击可再展开）
+    listHtml = opt(curB);
+  } else {
+    bmArchExpanded = true;
+    listHtml = bs.map(opt).join('') +
+      (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义 —</div>` + cs.map(opt).join('') : '') +
+      (vbs.length ? `<div class="tip" style="margin:6px 0">— 🌐 社区 Build —</div>` + vbs.map(opt).join('') : '');
+  }
+  box.innerHTML = listHtml;
   document.querySelectorAll('#buildModalList .build-opt').forEach(el => {
     // 长按删除（触屏 600ms；桌面保留 🗑 按钮）
     if (el.dataset.id.startsWith('custom_')) {
@@ -405,7 +445,17 @@ function renderBuildModal() {
         }
         return;
       }
+      // 收起态下点击已选流派 → 重新展开全部流派
+      if (!bmArchExpanded && el.dataset.id === currentArch) {
+        bmArchExpanded = true;
+        renderBuildModal();
+        return;
+      }
+      // 选择流派：选中 + 收起其他流派（弹窗保持打开，可再点展开/换职业）
+      bmCls = currentCls;
       selectBuild(el.dataset.id);
+      bmArchExpanded = false;
+      renderBuildModal();
     };
   });
 }
@@ -423,7 +473,7 @@ function selectBuild(archId) {
     }
   }
   renderArchBadge(); renderAll();
-  document.getElementById('buildModal').classList.remove('show');
+  // 弹窗保持打开（由调用方决定收展状态）
 }
 
 // ---------- 软上限近似估算 ----------
@@ -971,7 +1021,7 @@ clsSel.onchange = () => {
 };
 archSel.onchange = () => { currentArch = archSel.value; renderArchBadge(); renderAll(); };
 // 流派弹窗（手机端）
-document.getElementById('archPickBtn').onclick = () => { renderBuildModal(); document.getElementById('buildModal').classList.add('show'); };
+document.getElementById('archPickBtn').onclick = openBuildModal;
 document.getElementById('buildModalClose').onclick = () => document.getElementById('buildModal').classList.remove('show');
 document.getElementById('buildModal').addEventListener('click', e => {
   if (e.target === document.getElementById('buildModal')) document.getElementById('buildModal').classList.remove('show');

@@ -64,46 +64,27 @@ const runeName = id => { const r = D.runes.find(x => x.id === id); return r ? r.
 const artName = id => { const a = D.artifacts.find(x => x.id === id); return a ? a.zh : id; };
 const clsName = id => { const c = D.classes.find(x => x.id === id); return c ? c.zh : id; };
 
-// 职业 tabs（最前面加"自定义 Build"栏目 + "VRCT 社区"栏目）
+// 职业 tabs（最前面加"自定义 Build"栏目）
 const tabs = document.getElementById('buildTabs');
 tabs.insertAdjacentHTML('afterbegin', `<button data-cls="__custom__" style="background:rgba(86,156,255,.12);border:1px solid var(--blue);color:var(--blue);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600">✏️ 自定义 Build ${customBuilds.length ? `<small>(${customBuilds.length})</small>` : ''}</button>`);
-tabs.insertAdjacentHTML('afterbegin', `<button data-cls="__vrct__" style="background:rgba(240,180,41,.12);border:1px solid var(--accent);color:var(--accent);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600">🌐 VRCT 社区 Build ${(D.vrct_builds||[]).length ? `<small>(${D.vrct_builds.length})</small>` : ''}</button>`);
 D.classes.forEach(c => {
   tabs.insertAdjacentHTML('beforeend', `<button data-cls="${c.id}" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px">${c.zh} <small style="color:var(--text-dim)">${c.en}</small></button>`);
 });
 
-// VRCT 社区 Build 栏目
-let vrctClsFilter = '__all__';
-function renderVrctList() {
-  document.getElementById('archTabs').innerHTML = '';
-  const vbs = (D.vrct_builds||[]).filter(b => vrctClsFilter === '__all__' || b.classId === vrctClsFilter);
-  // 职业筛选 chips
-  const chips = ['__all__', ...D.classes.map(c => c.id)];
-  const chipRow = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">` + chips.map(cid =>
-    `<button data-vf="${cid}" style="background:${(vrctClsFilter===cid)?'rgba(240,180,41,.15)':'var(--bg3)'};border:1px solid ${(vrctClsFilter===cid)?'var(--accent)':'var(--border)'};color:${(vrctClsFilter===cid)?'var(--accent)':'var(--text)'};padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12.5px">${cid==='__all__'?'全部':clsName(cid)}</button>`).join('') + `</div>`;
-  const html = chipRow + (vbs.length ? vbs.map(b => {
-    const n = (id) => { const s = skillName(id); return s.zh; };
-    const total = (b.must||[]).reduce((a,m)=>a+(m.count||0),0);
-    return `<div class="card">
-      <h2>🌐 ${b.archetype} <span style="font-size:12.5px;color:var(--text-dim)">${clsName(b.classId)} · ${b.author||''} · ${b.createdAt||''}</span>
-        <span style="float:right;font-size:12px;color:var(--text-dim)">${b.stats||''}</span></h2>
-      <p style="font-size:13px;color:var(--text-dim)">${b.note || ''}</p>
-      <div class="build-block build-must">
-        <h4 style="color:var(--red)">🟥 加点（共 ${total} 层 / ${(b.must||[]).length} 项）</h4>
-        ${(b.must||[]).map(it => { const cnt = it.count ? `<span class="cnt">×${it.count}</span>` : ''; return `<div class="build-item">${cnt} <b>${n(it.id)}</b></div>`; }).join('')}
-      </div>
-      <div class="tip">💡 社区共享市场方案（VRCT 客户端）——在 <a href="simulator.html?cls=${b.classId}&arch=${b.archetypeId}">加点模拟器</a> 中可加载该方案一键填充。</div>
-    </div>`;
-  }).join('') : `<div class="card"><h2>🌐 VRCT 社区 Build</h2><p style="color:var(--text-dim)">该职业暂无社区方案。</p></div>`);
-  document.getElementById('buildList').innerHTML = html;
-  document.querySelectorAll('[data-vf]').forEach(btn => btn.onclick = () => { vrctClsFilter = btn.dataset.vf; renderVrctList(); });
+function buildOf2(clsId, archId) {
+  if (archId && archId.startsWith('vrct_')) return (D.vrct_builds||[]).find(b => b.classId === clsId && b.archetypeId === archId) || null;
+  return D.builds.find(b => b.classId === clsId && b.archetypeId === archId);
 }
 
 function fillArchTabs() {
   const box = document.getElementById('archTabs');
   const bs = D.builds.filter(b => b.classId === currentCls);
-  box.innerHTML = '<span style="color:var(--text-dim);font-size:13px;align-self:center">流派：</span>' + bs.map((b, i) => `
-    <button data-arch="${b.archetypeId}" style="background:${b.archetypeId===currentArch?'rgba(240,180,41,.15)':'var(--bg3)'};border:1px solid ${b.archetypeId===currentArch?'var(--accent)':'var(--border)'};color:${b.archetypeId===currentArch?'var(--accent)':'var(--text)'};padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13.5px">${b.archetype}</button>`).join('');
+  const vbs = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
+  const tabsHtml = (b, tag) => `
+    <button data-arch="${b.archetypeId}" style="background:${b.archetypeId===currentArch?'rgba(240,180,41,.15)':'var(--bg3)'};border:1px solid ${b.archetypeId===currentArch?'var(--accent)':'var(--border)'};color:${b.archetypeId===currentArch?'var(--accent)':'var(--text)'};padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13.5px">${tag}${b.archetype}</button>`;
+  box.innerHTML = '<span style="color:var(--text-dim);font-size:13px;align-self:center">流派：</span>'
+    + bs.map(b => tabsHtml(b, '')).join('')
+    + (vbs.length ? '<span style="color:var(--text-dim);font-size:13px;align-self:center;margin-left:6px">🌐 社区：</span>' + vbs.map(b => tabsHtml(b, '🌐 ')).join('') : '');
   box.querySelectorAll('button').forEach(btn => btn.onclick = () => { currentArch = btn.dataset.arch; fillArchTabs(); renderBuild(); });
 }
 
@@ -149,7 +130,7 @@ function renderCustomList() {
 }
 
 function renderBuild() {
-  const b = D.builds.find(x => x.classId === currentCls && x.archetypeId === currentArch);
+  const b = buildOf2(currentCls, currentArch);
   if (!b) return;
   const c = D.classes.find(x => x.id === b.classId);
   const block = (title, items, cls, headColor) => items && items.length ? `
@@ -181,7 +162,6 @@ tabs.querySelectorAll('button').forEach(btn => {
     btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)';
     currentCls = btn.dataset.cls;
     if (currentCls === '__custom__') { renderCustomList(); return; }
-    if (currentCls === '__vrct__') { renderVrctList(); return; }
     const bs = D.builds.filter(b => b.classId === currentCls);
     currentArch = bs[0].archetypeId;
     fillArchTabs();
