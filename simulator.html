@@ -94,6 +94,12 @@
     <input type="text" id="smKw" class="search-box" placeholder="输入中/英技能名…">
     <span class="sm-close" id="smClose">✕ 关闭</span>
   </div>
+  <div class="picker-tabs" id="smTabs">
+    <button data-tab="skill" class="active">技能</button>
+    <button data-tab="rune">符文</button>
+    <button data-tab="curse">诅咒</button>
+    <button data-tab="artifact">神器</button>
+  </div>
   <div class="skill-picker" id="smPicker"></div>
 </div>
 
@@ -122,7 +128,8 @@
 <!-- 流派选择弹窗（手机端） -->
 <div class="detail-modal" id="buildModal">
   <div class="dm-box">
-    <h3 style="margin-bottom:10px">🎯 选择 Build（流派）</h3>
+    <h3 style="margin-bottom:10px">🎯 选择职业与 Build</h3>
+    <div class="bm-cls-row" id="bmClsRow"></div>
     <div id="buildModalList" style="font-size:14px"></div>
     <div class="dm-close" id="buildModalClose">点击空白处关闭</div>
   </div>
@@ -191,23 +198,28 @@ function saveCustomBuilds() {
 function saveCurrentAsCustom(name) {
   const cur = buildOf(currentCls, currentArch);
   const must = [];
+  let totalLayers = 0;
   for (const [sid, n] of Object.entries(state)) {
     if (n <= 0) continue;
+    totalLayers += n;
     const src = cur && (cur.must.find(x=>x.id===sid) || cur.nice.find(x=>x.id===sid));
     must.push({ id: sid, count: n, reason: src ? src.reason : '自定义加点（非流派方案项）' });
   }
-  if (!must.length) return false;
+  if (!must.length) return { ok: false, msg: '当前没有技能加点，无法保存。' };
+  if (totalLayers < 21) return { ok: false, msg: `保存流派的最低技能加点数量为 21 点（当前 ${totalLayers} 点）。` };
   const id = 'custom_' + Date.now().toString(36);
   customBuilds.push({
-    archetypeId: id, classId: currentCls, archetype: name || '自定义 Build', title: name || '自定义 Build',
+    archetypeId: id, classId: currentCls, archetype: name, title: name,
     patch: '自定义', source: '本地自定义（浏览器缓存）',
-    note: `基于「${cur ? cur.archetype : '无'}」保存的自定义方案，保存于 ${new Date().toLocaleDateString()}。共 ${must.reduce((a,m)=>a+m.count,0)} 层 / ${must.length} 项。`,
+    note: `基于「${cur ? cur.archetype : '无'}」保存的自定义方案，保存于 ${new Date().toLocaleDateString()}。共 ${totalLayers} 层 / ${must.length} 项。`,
     must, nice: [], avoid: [],
-    playstyle: '自定义 Build：从你的加点保存而来，可随时一键填充/对比。仅保存在本浏览器（localStorage）。',
+    runes: runeOrder.slice(),                     // 符文槽（含顺序倍率）
+    artifacts: Object.entries(artifactState).filter(([,n])=>n>0),  // 神器（id, 层数）
+    playstyle: '自定义 Build：从你的加点+符文+神器保存而来，可随时一键填充/对比。仅保存在本浏览器（localStorage）。',
     reroll: '',
   });
   saveCustomBuilds();
-  return true;
+  return { ok: true, id };
 }
 function deleteCustomBuild(id) {
   customBuilds = customBuilds.filter(b => b.archetypeId !== id);
@@ -235,8 +247,22 @@ function renderArchBadge() {
   document.getElementById('archBadge').textContent = b ? b.archetype : '未选择流派';
 }
 
-// 流派选择弹窗（手机端）
+// 流派选择弹窗（手机端）：职业 chips + 流派列表
 function renderBuildModal() {
+  // 职业选择行（chips）
+  document.getElementById('bmClsRow').innerHTML = D.classes.map(c =>
+    `<button class="bm-cls${c.id===currentCls?' active':''}" data-cls="${c.id}">
+      <img src="icons/class_${c.id}.png" alt="">${c.zh}</button>`).join('');
+  document.querySelectorAll('#bmClsRow .bm-cls').forEach(btn => btn.onclick = () => {
+    if (btn.dataset.cls === currentCls) return;
+    currentCls = btn.dataset.cls;
+    clsSel.value = currentCls;
+    state = {};
+    fillArchetypes();
+    renderAll();
+    renderBuildModal();
+  });
+  // 流派列表
   const bs = buildsOf(currentCls);
   const cs = customBuilds.filter(b => b.classId === currentCls);
   const opt = b => `
@@ -254,11 +280,24 @@ function renderBuildModal() {
       fillArchetypes(); renderAll(); renderBuildModal();
       return;
     }
-    currentArch = el.dataset.id;
-    archSel.value = currentArch;
-    renderArchBadge(); renderAll();
-    document.getElementById('buildModal').classList.remove('show');
+    selectBuild(el.dataset.id);
   });
+}
+function selectBuild(archId) {
+  currentArch = archId;
+  archSel.value = archId;
+  // 自定义 build：恢复其保存的符文/神器
+  if (archId && archId.startsWith('custom_')) {
+    const cb = customBuilds.find(b => b.archetypeId === archId);
+    if (cb) {
+      runeOrder.length = 0;
+      (cb.runes||[]).forEach(rid => runeOrder.push(rid));
+      Object.keys(artifactState).forEach(k => delete artifactState[k]);
+      (cb.artifacts||[]).forEach(([aid, n]) => { artifactState[aid] = n; });
+    }
+  }
+  renderArchBadge(); renderAll();
+  document.getElementById('buildModal').classList.remove('show');
 }
 
 // ---------- 软上限近似估算 ----------
@@ -815,18 +854,19 @@ document.getElementById('buildModal').addEventListener('click', e => {
 document.getElementById('btnSaveCustom').onclick = () => document.getElementById('saveModal').classList.add('show');
 document.getElementById('saveCancel').onclick = () => document.getElementById('saveModal').classList.remove('show');
 document.getElementById('saveConfirm').onclick = () => {
-  const name = document.getElementById('saveName').value.trim() || '我的自定义 Build';
-  if (saveCurrentAsCustom(name)) {
+  const name = document.getElementById('saveName').value.trim();  // 首尾空格自动删除
+  if (!name) { alert('Build 名称不能为空，请输入名称后再保存。'); return; }  // 不可留空/全空格
+  const r = saveCurrentAsCustom(name);
+  if (r.ok) {
     document.getElementById('saveModal').classList.remove('show');
     document.getElementById('saveName').value = '';
     fillArchetypes();
-    // 选中刚保存的自定义
-    const saved = customBuilds[customBuilds.length - 1];
-    currentArch = saved.archetypeId;
-    archSel.value = saved.archetypeId;
+    // 选中刚保存的自定义（含恢复符文/神器）
+    currentArch = r.id;
+    archSel.value = r.id;
     renderArchBadge(); renderAll();
   } else {
-    alert('当前没有加点，无法保存为自定义 Build。');
+    alert(r.msg);
   }
 };
 document.getElementById('saveModal').addEventListener('click', e => {
@@ -850,14 +890,18 @@ document.getElementById('smKw').oninput = () => {
   if (!document.getElementById('smKw').value.trim()) closeSearchModal();  // 清空自动关闭
   else renderPicker('smPicker');
 };
-// 搜索 Tab 切换
+// 搜索 Tab 切换（桌面内嵌 + 手机弹窗共用）
 const TAB_LABEL = { skill:'🔍 搜索技能，点「＋」加点（可叠多层）', rune:'符文（保留最近 2 个，选第 3 个自动顶掉最旧的；槽位倍率 ×1/×2）', curse:'符文诅咒（保留最近 2 个，选第 3 个自动顶掉最旧的；倍率 ×1/×2）', artifact:'神器（每小局获得 1 个、可重复，加成跨小局持续累积；点击 +1，上限 12）' };
-document.querySelectorAll('#pickerTabs button').forEach(btn => btn.onclick = () => {
-  pickerTab = btn.dataset.tab;
-  document.querySelectorAll('#pickerTabs button').forEach(b => b.classList.toggle('active', b === btn));
+function syncPickerTabs() {
+  document.querySelectorAll('#pickerTabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === pickerTab));
+  document.querySelectorAll('#smTabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === pickerTab));
   document.getElementById('pickerLabel').textContent = TAB_LABEL[pickerTab];
-  const kw = document.getElementById('skillKw');
-  kw.value = '';
+}
+document.querySelectorAll('#pickerTabs button, #smTabs button').forEach(btn => btn.onclick = () => {
+  pickerTab = btn.dataset.tab;
+  syncPickerTabs();
+  document.getElementById('skillKw').value = '';
+  document.getElementById('smKw').value = '';
   renderPicker('skillPicker');
   renderPicker('smPicker');
 });

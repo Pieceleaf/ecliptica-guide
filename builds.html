@@ -51,8 +51,22 @@ const skillName = id => {
 let currentCls = null;
 let currentArch = null;
 
-// 职业 tabs
+// 自定义 Build（与模拟器同 key 的 localStorage）
+const CUSTOM_KEY = 'ecliptica_custom_builds_v1';
+let customBuilds = [];
+function loadCustomBuilds() {
+  try { customBuilds = JSON.parse(localStorage.getItem(CUSTOM_KEY)) || []; }
+  catch(e) { customBuilds = []; }
+}
+loadCustomBuilds();
+
+const runeName = id => { const r = D.runes.find(x => x.id === id); return r ? r.zh : id; };
+const artName = id => { const a = D.artifacts.find(x => x.id === id); return a ? a.zh : id; };
+const clsName = id => { const c = D.classes.find(x => x.id === id); return c ? c.zh : id; };
+
+// 职业 tabs（最前面加"自定义 Build"栏目）
 const tabs = document.getElementById('buildTabs');
+tabs.insertAdjacentHTML('afterbegin', `<button data-cls="__custom__" style="background:rgba(86,156,255,.12);border:1px solid var(--blue);color:var(--blue);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600">✏️ 自定义 Build ${customBuilds.length ? `<small>(${customBuilds.length})</small>` : ''}</button>`);
 D.classes.forEach(c => {
   tabs.insertAdjacentHTML('beforeend', `<button data-cls="${c.id}" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px">${c.zh} <small style="color:var(--text-dim)">${c.en}</small></button>`);
 });
@@ -63,6 +77,47 @@ function fillArchTabs() {
   box.innerHTML = '<span style="color:var(--text-dim);font-size:13px;align-self:center">流派：</span>' + bs.map((b, i) => `
     <button data-arch="${b.archetypeId}" style="background:${b.archetypeId===currentArch?'rgba(240,180,41,.15)':'var(--bg3)'};border:1px solid ${b.archetypeId===currentArch?'var(--accent)':'var(--border)'};color:${b.archetypeId===currentArch?'var(--accent)':'var(--text)'};padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13.5px">${b.archetype}</button>`).join('');
   box.querySelectorAll('button').forEach(btn => btn.onclick = () => { currentArch = btn.dataset.arch; fillArchTabs(); renderBuild(); });
+}
+
+// 自定义 Build 栏目：全部自定义方案列表
+function renderCustomList() {
+  document.getElementById('archTabs').innerHTML = '';
+  if (!customBuilds.length) {
+    document.getElementById('buildList').innerHTML = `<div class="card"><h2>✏️ 自定义 Build</h2>
+      <p style="color:var(--text-dim);font-size:14px">还没有保存的自定义 Build。<br><br>在 <a href="simulator.html" style="color:var(--blue)">加点模拟器</a> 中完成加点（≥21 点）后，点「💾 存为自定义 Build」即可在这里查看和管理。</p></div>`;
+    return;
+  }
+  const html = customBuilds.map(b => {
+    const total = (b.must||[]).reduce((a,m)=>a+(m.count||0),0);
+    const runesTxt = (b.runes||[]).map((rid,i)=>`<span class="badge">符文${i+1}：${runeName(rid)}（×${i+1}）</span>`).join('') || '<span style="color:var(--text-dim)">无</span>';
+    const artsTxt = (b.artifacts||[]).map(([aid,n])=>`<span class="badge">${artName(aid)}×${n}</span>`).join('') || '<span style="color:var(--text-dim)">无</span>';
+    return `<div class="card">
+      <h2>✏️ ${b.archetype} <span style="font-size:13px;color:var(--text-dim)">${clsName(b.classId)} · 自定义</span>
+        <button data-del="${b.archetypeId}" style="float:right;background:none;border:1px solid var(--red);color:var(--red);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:12px">🗑 删除</button></h2>
+      <p style="font-size:13px;color:var(--text-dim)">${b.note||''} · 来源：${b.source}</p>
+      <div class="build-block build-must">
+        <h4 style="color:var(--red)">🟥 技能加点（共 ${total} 层 / ${(b.must||[]).length} 项）</h4>
+        ${(b.must||[]).map(it => { const n = skillName(it.id); const cnt = it.count ? `<span class="cnt">×${it.count}</span>` : ''; return `<div class="build-item">${cnt} <b>${n.zh}</b> <span class="en">${n.en}</span> — <span class="why">${it.reason}</span></div>`; }).join('')}
+      </div>
+      <div class="build-block">
+        <h4 style="color:var(--blue)">🔷 符文（按槽位倍率）</h4>
+        <div style="padding:4px 0">${runesTxt}</div>
+      </div>
+      <div class="build-block">
+        <h4 style="color:var(--accent)">🏺 神器（跨小局累积）</h4>
+        <div style="padding:4px 0">${artsTxt}</div>
+      </div>
+      <p style="font-size:13px;color:var(--text-dim)">${b.playstyle||''}</p>
+    </div>`;
+  }).join('');
+  document.getElementById('buildList').innerHTML = html;
+  document.querySelectorAll('[data-del]').forEach(btn => btn.onclick = () => {
+    if (!confirm(`删除自定义 Build「${customBuilds.find(x=>x.archetypeId===btn.dataset.del).archetype}」？`)) return;
+    customBuilds = customBuilds.filter(x => x.archetypeId !== btn.dataset.del);
+    try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(customBuilds)); } catch(e) {}
+    tabs.querySelector('[data-cls="__custom__"]').innerHTML = `✏️ 自定义 Build ${customBuilds.length ? `<small>(${customBuilds.length})</small>` : ''}`;
+    renderCustomList();
+  });
 }
 
 function renderBuild() {
@@ -97,6 +152,7 @@ tabs.querySelectorAll('button').forEach(btn => {
     tabs.querySelectorAll('button').forEach(b => { b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text)'; });
     btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)';
     currentCls = btn.dataset.cls;
+    if (currentCls === '__custom__') { renderCustomList(); return; }
     const bs = D.builds.filter(b => b.classId === currentCls);
     currentArch = bs[0].archetypeId;
     fillArchTabs();
