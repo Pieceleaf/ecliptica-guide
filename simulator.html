@@ -30,11 +30,19 @@
   <div class="sim-layout">
     <!-- 左：加点面板 -->
     <div class="control-panel card">
-      <div class="select-row">
+      <div class="arch-badge-row" id="archBadgeRow">
+        <img id="clsIcon" class="cls-icon" alt="职业">
+        <div class="arch-badge-info">
+          <div id="clsNameTxt" class="cls-name"></div>
+          <div class="arch-badge" id="archBadge">未选择流派</div>
+        </div>
+        <button class="arch-pick-btn" id="archPickBtn">🎯 选择 Build</button>
+      </div>
+      <div class="select-row arch-row">
         <label>职业</label>
         <select id="clsSel"></select>
       </div>
-      <div class="select-row">
+      <div class="select-row arch-row">
         <label>流派（决定 Build 目标与优先级）</label>
         <select id="archSel"></select>
       </div>
@@ -55,6 +63,7 @@
       <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
         <button id="btnReset" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer">清空加点</button>
         <button id="btnApplyBuild" style="background:rgba(240,180,41,.15);border:1px solid var(--accent);color:var(--accent);padding:6px 14px;border-radius:6px;cursor:pointer">一键填充流派 Build 目标</button>
+        <button id="btnSaveCustom" style="background:rgba(86,156,255,.15);border:1px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:6px;cursor:pointer">💾 存为自定义 Build</button>
         <button id="btnStats" style="background:rgba(86,156,255,.15);border:1px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:6px;cursor:pointer">📊 当前属性</button>
       </div>
       <div class="tip" style="margin-top:10px">「一键填充」把当前流派 Build 的必须/准必须项填到推荐层数，方便对照你的实际加点差距。</div>
@@ -110,6 +119,28 @@
   </div>
 </div>
 
+<!-- 流派选择弹窗（手机端） -->
+<div class="detail-modal" id="buildModal">
+  <div class="dm-box">
+    <h3 style="margin-bottom:10px">🎯 选择 Build（流派）</h3>
+    <div id="buildModalList" style="font-size:14px"></div>
+    <div class="dm-close" id="buildModalClose">点击空白处关闭</div>
+  </div>
+</div>
+
+<!-- 保存自定义 Build 弹窗 -->
+<div class="detail-modal" id="saveModal">
+  <div class="dm-box">
+    <h3 style="margin-bottom:10px">💾 保存为自定义 Build</h3>
+    <input id="saveName" class="search-box" placeholder="给这个 Build 起个名字…" style="margin-bottom:10px">
+    <div style="display:flex;gap:8px">
+      <button id="saveConfirm" style="flex:1;background:rgba(240,180,41,.15);border:1px solid var(--accent);color:var(--accent);padding:8px;border-radius:8px;cursor:pointer">保存</button>
+      <button id="saveCancel" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text-dim);padding:8px;border-radius:8px;cursor:pointer">取消</button>
+    </div>
+    <div class="tip" style="margin-top:8px">保存在<b>浏览器本地缓存</b>（localStorage），仅当前浏览器有效，可跨次访问使用。</div>
+  </div>
+</div>
+
 <nav class="bottom-nav"><a href="index.html" class=""><span class="bn-ico">🏠</span>首页</a><a href="classes.html" class=""><span class="bn-ico">⚔️</span>职业</a><a href="upgrades.html" class=""><span class="bn-ico">📖</span>图鉴</a><a href="builds.html" class=""><span class="bn-ico">🛠️</span>Build</a><a href="simulator.html" class="active"><span class="bn-ico">🎯</span>模拟器</a><a href="stats.html" class=""><span class="bn-ico">📊</span>属性</a><a href="changelog.html" class=""><span class="bn-ico">📜</span>日志</a></nav>
 <footer>
   Ecliptica 日蚀攻略站 · 优先级为攻略站整理的社区共识模型 · 非官方数值<br>
@@ -137,19 +168,97 @@ function classSkills(clsId) {
   return list;
 }
 function buildsOf(clsId) { return D.builds.filter(b => b.classId === clsId); }
-function buildOf(clsId, archId) { return D.builds.find(b => b.classId === clsId && b.archetypeId === archId); }
+function buildOf(clsId, archId) {
+  if (archId && archId.startsWith('custom_')) return customBuilds.find(b => b.classId === clsId && b.archetypeId === archId) || null;
+  return D.builds.find(b => b.classId === clsId && b.archetypeId === archId);
+}
 function nameOf(id) {
   for (const s of D.shops) for (const sk of s.skills) if (sk.id === id) return sk;
   for (const c of D.classes) for (const sk of (D.class_upgrades[c.id]||[])) if (sk.id === id) return sk;
   return {zh:id, en:''};
 }
 
+// ---------- 自定义 Build（浏览器本地缓存 localStorage） ----------
+const CUSTOM_KEY = 'ecliptica_custom_builds_v1';
+let customBuilds = [];
+function loadCustomBuilds() {
+  try { customBuilds = JSON.parse(localStorage.getItem(CUSTOM_KEY)) || []; }
+  catch(e) { customBuilds = []; }
+}
+function saveCustomBuilds() {
+  try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(customBuilds)); } catch(e) {}
+}
+function saveCurrentAsCustom(name) {
+  const cur = buildOf(currentCls, currentArch);
+  const must = [];
+  for (const [sid, n] of Object.entries(state)) {
+    if (n <= 0) continue;
+    const src = cur && (cur.must.find(x=>x.id===sid) || cur.nice.find(x=>x.id===sid));
+    must.push({ id: sid, count: n, reason: src ? src.reason : '自定义加点（非流派方案项）' });
+  }
+  if (!must.length) return false;
+  const id = 'custom_' + Date.now().toString(36);
+  customBuilds.push({
+    archetypeId: id, classId: currentCls, archetype: name || '自定义 Build', title: name || '自定义 Build',
+    patch: '自定义', source: '本地自定义（浏览器缓存）',
+    note: `基于「${cur ? cur.archetype : '无'}」保存的自定义方案，保存于 ${new Date().toLocaleDateString()}。共 ${must.reduce((a,m)=>a+m.count,0)} 层 / ${must.length} 项。`,
+    must, nice: [], avoid: [],
+    playstyle: '自定义 Build：从你的加点保存而来，可随时一键填充/对比。仅保存在本浏览器（localStorage）。',
+    reroll: '',
+  });
+  saveCustomBuilds();
+  return true;
+}
+function deleteCustomBuild(id) {
+  customBuilds = customBuilds.filter(b => b.archetypeId !== id);
+  saveCustomBuilds();
+}
+
 // ---------- 流派选择 ----------
 function fillArchetypes() {
   const bs = buildsOf(currentCls);
+  const cs = customBuilds.filter(b => b.classId === currentCls);
   archSel.innerHTML = '';
   bs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">${b.archetype}（${b.title}）</option>`));
-  currentArch = bs.length ? bs[0].archetypeId : null;
+  cs.forEach((b, i) => archSel.insertAdjacentHTML('beforeend', `<option value="${b.archetypeId}">✏️ ${b.archetype}（自定义）</option>`));
+  currentArch = bs.length ? bs[0].archetypeId : (cs.length ? cs[0].archetypeId : null);
+  archSel.value = currentArch;
+  renderArchBadge();
+}
+
+// 当前流派徽章（职业图标 + 流派名）
+function renderArchBadge() {
+  const cls = D.classes.find(c => c.id === currentCls);
+  const b = buildOf(currentCls, currentArch);
+  document.getElementById('clsIcon').src = 'icons/class_' + currentCls + '.png';
+  document.getElementById('clsNameTxt').textContent = cls ? cls.zh : '';
+  document.getElementById('archBadge').textContent = b ? b.archetype : '未选择流派';
+}
+
+// 流派选择弹窗（手机端）
+function renderBuildModal() {
+  const bs = buildsOf(currentCls);
+  const cs = customBuilds.filter(b => b.classId === currentCls);
+  const opt = b => `
+    <div class="build-opt${b.archetypeId===currentArch?' active':''}" data-id="${b.archetypeId}">
+      <span class="b-opt-name">${b.archetypeId.startsWith('custom_')?'✏️ ':''}${b.archetype}</span>
+      <span class="b-opt-src">${b.source ? b.source.split('（')[0] : ''}</span>
+      ${b.archetypeId.startsWith('custom_') ? `<span class="b-opt-del" data-del="${b.archetypeId}">🗑</span>` : ''}
+    </div>`;
+  document.getElementById('buildModalList').innerHTML =
+    bs.map(opt).join('') + (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义（本浏览器保存）—</div>` + cs.map(opt).join('') : '');
+  document.querySelectorAll('#buildModalList .build-opt').forEach(el => el.onclick = (e) => {
+    if (e.target.classList.contains('b-opt-del')) {
+      deleteCustomBuild(e.target.dataset.del);
+      if (currentArch === e.target.dataset.del) { currentArch = buildsOf(currentCls)[0] ? buildsOf(currentCls)[0].archetypeId : null; }
+      fillArchetypes(); renderAll(); renderBuildModal();
+      return;
+    }
+    currentArch = el.dataset.id;
+    archSel.value = currentArch;
+    renderArchBadge(); renderAll();
+    document.getElementById('buildModal').classList.remove('show');
+  });
 }
 
 // ---------- 软上限近似估算 ----------
@@ -695,7 +804,34 @@ clsSel.onchange = () => {
   fillArchetypes();
   renderAll();
 };
-archSel.onchange = () => { currentArch = archSel.value; renderAll(); };
+archSel.onchange = () => { currentArch = archSel.value; renderArchBadge(); renderAll(); };
+// 流派弹窗（手机端）
+document.getElementById('archPickBtn').onclick = () => { renderBuildModal(); document.getElementById('buildModal').classList.add('show'); };
+document.getElementById('buildModalClose').onclick = () => document.getElementById('buildModal').classList.remove('show');
+document.getElementById('buildModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('buildModal')) document.getElementById('buildModal').classList.remove('show');
+});
+// 保存自定义 Build
+document.getElementById('btnSaveCustom').onclick = () => document.getElementById('saveModal').classList.add('show');
+document.getElementById('saveCancel').onclick = () => document.getElementById('saveModal').classList.remove('show');
+document.getElementById('saveConfirm').onclick = () => {
+  const name = document.getElementById('saveName').value.trim() || '我的自定义 Build';
+  if (saveCurrentAsCustom(name)) {
+    document.getElementById('saveModal').classList.remove('show');
+    document.getElementById('saveName').value = '';
+    fillArchetypes();
+    // 选中刚保存的自定义
+    const saved = customBuilds[customBuilds.length - 1];
+    currentArch = saved.archetypeId;
+    archSel.value = saved.archetypeId;
+    renderArchBadge(); renderAll();
+  } else {
+    alert('当前没有加点，无法保存为自定义 Build。');
+  }
+};
+document.getElementById('saveModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('saveModal')) document.getElementById('saveModal').classList.remove('show');
+});
 document.getElementById('skillKw').oninput = () => renderPicker('skillPicker');
 document.getElementById('btnReset').onclick = () => { state = {}; renderAll(); };
 document.getElementById('btnApplyBuild').onclick = () => {
@@ -749,10 +885,12 @@ document.getElementById('detailModal').addEventListener('click', e => {
 });
 
 // ---------- 初始化 ----------
+loadCustomBuilds();
 const q = new URLSearchParams(location.search).get('cls');
 currentCls = (q && D.classes.some(c=>c.id===q)) ? q : D.classes[0].id;
 clsSel.value = currentCls;
 fillArchetypes();
+renderArchBadge();
 renderAll();
 </script>
 <script src="site.js"></script>

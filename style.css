@@ -281,6 +281,39 @@ td .jp { color: var(--text-dim); font-size: 11px; opacity: .8; display: block; }
 
 /* 搜索框 */
 .search-box { width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: 8px; font-size: 14px; margin-bottom: 12px; }
+
+/* 当前流派徽章行（职业图标 + 流派名） */
+.arch-badge-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px 10px; margin-bottom: 12px;
+}
+.cls-icon { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); object-fit: contain; padding: 2px; flex-shrink: 0; }
+.arch-badge-info { flex: 1; min-width: 0; }
+.cls-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.arch-badge {
+  display: inline-block; margin-top: 2px; font-size: 12px; color: var(--accent);
+  background: rgba(240,180,41,.1); border: 1px solid var(--accent); border-radius: 8px;
+  padding: 1px 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.arch-pick-btn {
+  display: none; flex-shrink: 0;
+  background: rgba(240,180,41,.15); border: 1px solid var(--accent); color: var(--accent);
+  padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+body.touch-mode .arch-row { display: none !important; }
+body.touch-mode .arch-pick-btn { display: block; }
+
+/* 流派弹窗列表 */
+.build-opt {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; font-size: 13.5px;
+}
+.build-opt.active { border-color: var(--accent); background: rgba(240,180,41,.12); }
+.build-opt .b-opt-name { flex: 1; }
+.build-opt .b-opt-src { color: var(--text-dim); font-size: 11px; }
+.build-opt .b-opt-del { color: var(--red); font-size: 12px; padding: 4px 6px; }
 .picker-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
 .picker-tabs button {
   flex: 1; background: var(--bg3); border: 1px solid var(--border); color: var(--text-dim);
