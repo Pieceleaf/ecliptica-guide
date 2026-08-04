@@ -7,7 +7,7 @@
 <title>加点模拟器 - Ecliptica 日蚀攻略站</title>
 <link rel="stylesheet" href="style.css?v=5">
 </head>
-<body>
+<body class="sim-page">
 <header>
   <nav class="nav">
     <div class="brand">☀ Ecliptica <small>日蚀攻略站</small></div>
@@ -88,6 +88,32 @@
   </div>
 </main>
 
+<!-- 手机端：模拟器固定操作条与更多抽屉 -->
+<div class="sim-action-bar" id="simActionBar">
+  <button id="simAddBtn" class="sim-action-primary">＋ 添加技能</button>
+  <button id="simStatsBtn" class="sim-action-secondary">📊 属性</button>
+  <button id="simMoreBtn" class="sim-action-secondary">⋯ 更多</button>
+</div>
+<div class="detail-modal sim-more-modal" id="moreDrawer">
+  <div class="dm-box">
+    <div class="dm-handle"></div>
+    <h3 style="margin-bottom:10px">更多操作</h3>
+    <div id="moreMenu" class="more-menu">
+      <button data-more-action="clear">🧹 清空加点</button>
+      <button data-more-action="fill">🎯 一键填充流派 Build 目标</button>
+      <button data-more-action="save">💾 保存自定义 Build</button>
+      <button data-more-action="share">🔗 分享链接</button>
+      <button data-more-action="custom">🛠️ 自定义 Build 管理</button>
+    </div>
+    <div id="actionConfirm" class="action-confirm" style="display:none"></div>
+  </div>
+</div>
+<div class="snackbar" id="snackbar" role="status" aria-live="polite">
+  <span class="snackbar-msg" id="snackbarMsg"></span>
+  <button class="snackbar-undo" id="snackbarUndo">↩ 撤销</button>
+  <button class="snackbar-close" id="snackbarClose" aria-label="关闭提示">×</button>
+</div>
+
 <!-- 手机端：搜索弹窗 -->
 <div class="search-modal" id="searchModal">
   <div class="sm-head">
@@ -107,6 +133,7 @@
 <!-- 手机端：技能详情弹窗（点加/减加点） -->
 <div class="detail-modal" id="detailModal">
   <div class="dm-box">
+    <div class="dm-handle"></div>
     <div id="dmBody"></div>
     <div class="dm-actions">
       <button class="dm-btn minus" id="dmMinus">−</button>
@@ -123,6 +150,7 @@
 <!-- 神器管理弹窗（加减次数） -->
 <div class="detail-modal" id="artModal">
   <div class="dm-box">
+    <div class="dm-handle"></div>
     <div id="artBody" style="font-size:14px"></div>
     <div class="dm-actions">
       <button class="dm-btn minus" id="artMinus">−</button>
@@ -142,6 +170,7 @@
 <!-- 当前属性弹窗 -->
 <div class="detail-modal" id="statsModal">
   <div class="dm-box" style="width:min(520px,94vw)">
+    <div class="dm-handle"></div>
     <h3 style="margin-bottom:10px">📊 当前属性 <span id="statsSub" style="font-size:12px;color:var(--text-dim)"></span></h3>
     <div id="statsBody" style="font-size:13.5px"></div>
     <div class="dm-btns" style="margin-top:12px"><button id="statsOk" class="dm-ok" style="flex:1">✅ 确认</button></div>
@@ -151,6 +180,7 @@
 <!-- 流派选择弹窗（手机端） -->
 <div class="detail-modal" id="buildModal">
   <div class="dm-box">
+    <div class="dm-handle"></div>
     <h3 style="margin-bottom:10px">🎯 选择职业与 Build</h3>
     <div class="bm-cls-row" id="bmClsRow"></div>
     <div id="buildModalList" style="font-size:14px"></div>
@@ -162,6 +192,7 @@
 <!-- 保存自定义 Build 弹窗 -->
 <div class="detail-modal" id="saveModal">
   <div class="dm-box">
+    <div class="dm-handle"></div>
     <h3 style="margin-bottom:10px">💾 保存为自定义 Build</h3>
     <input id="saveName" class="search-box" placeholder="Build 名称（必填）" style="margin-bottom:10px">
     <textarea id="saveNote" class="search-box" placeholder="备注说明（可选，如加点思路/适用场景）" style="margin-bottom:10px;min-height:64px;resize:vertical"></textarea>
@@ -176,6 +207,7 @@
 <!-- 分享 Build 弹窗（名称/备注可选） -->
 <div class="detail-modal" id="shareModal">
   <div class="dm-box">
+    <div class="dm-handle"></div>
     <h3 style="margin-bottom:10px">🔗 生成分享链接</h3>
     <input id="shareName" class="search-box" placeholder="Build 名称（可选，默认当前流派名）" style="margin-bottom:10px">
     <textarea id="shareNote" class="search-box" placeholder="备注说明（可选，随链接一起分享）" style="margin-bottom:10px;min-height:64px;resize:vertical"></textarea>
@@ -342,7 +374,7 @@ function applySharedBuild(decoded, sig) {
     document.getElementById('saveName').value = decoded.name;
     document.getElementById('saveNote').value = decoded.note || '';
     document.getElementById('saveModal').dataset.shareSig = sig;
-    document.getElementById('saveModal').classList.add('show');
+    showLayer('saveModal');
   };
   document.getElementById('sbClose').onclick = () => document.getElementById('shareBanner').style.display = 'none';
 }
@@ -390,7 +422,7 @@ function openBuildModal() {
   bmCls = draftCls;
   document.getElementById('buildModalConfirm').style.display = 'none';
   renderBuildModal();
-  document.getElementById('buildModal').classList.add('show');
+  showLayer('buildModal');
 }
 function renderBuildModal() {
   const clsRow = document.getElementById('bmClsRow');
@@ -714,7 +746,7 @@ function renderStatsModal() {
   html += '</table>';
   html += '<p style="margin-top:8px;font-size:12px;color:var(--text-dim)">※ 加成以 100% 为基准（如攻速 100% + 加成 = 实际攻速）；最大生命为职业基础+加成。特殊效果技能（暴击触发类/减伤类等）不参与数值计算，详见技能详情。</p>';
   document.getElementById('statsBody').innerHTML = html;
-  document.getElementById('statsModal').classList.add('show');
+  showLayer('statsModal');
 }
 
 // ---------- 渲染：搜索加点面板（桌面内嵌 + 手机端弹窗共用） ----------
@@ -762,7 +794,7 @@ function renderPicker(cid) {
     if (cid === 'smPicker') { renderPicker('smPicker'); updateSearchDone(); }
   });
   // 触屏：点击搜索行打开详情弹窗（桌面端行点击不设行为，靠 hover+按钮）
-  if (isTouch) {
+  if (mobileMode) {
     document.querySelectorAll(`#${cid} .pick-row[data-id]`).forEach(el => {
       el.addEventListener('click', e => {
         if (e.target.classList.contains('btn-add')) return;
@@ -834,6 +866,7 @@ function renderState() {
       const badgeCls = sc.status==='done'?'ok':sc.status==='warn'?'warn':sc.status==='bad'?'bad':'';
       html += `<div class="skill-icon" data-id="${s.id}">
         ${icon ? `<img src="${icon}" alt="${s.zh}">` : `<div class="si-ph">${s.zh.slice(0,1)}</div>`}
+        <span class="si-name">${s.zh}</span>
         <span class="si-badge ${badgeCls}">${state[s.id]}${y?`/${y}`:''}</span>
         <button class="si-minus" data-dec="${s.id}" title="减 1 层">−</button>
         <div class="si-tip">${tooltipHtml(s, sc, y)}</div>
@@ -847,7 +880,7 @@ function renderState() {
     const id = el.dataset.id;
     el.addEventListener('click', e => {
       if (e.target.classList.contains('si-minus')) return;
-      if (isTouch) { openDetail(id, false); return; }
+      if (mobileMode) { openDetail(id, false); return; }
       state[id] = (state[id]||0) + 1;
       renderAll();
     });
@@ -893,13 +926,13 @@ function renderPrio() {
       ? (prioExpanded[g.id] ? activeAll : activeAll.slice(0, 3))
       : added.concat(restAll.slice(0, 9));
     const done = grp.filter(x => x.status === 'done');  // 已达标排最底
-    const activeMore = mobileMode && activeAll.length > 3 && !prioExpanded[g.id];
-    const doneHtml = !done.length ? '' : mobileMode && !prioDoneExpanded[g.id]
-      ? `<div class="prio-done-hd">✓ 已达标 ${done.length} 项 <button class="prio-expand" data-prio-done="${g.id}" style="float:right;min-height:36px;padding:4px 10px">展开</button></div>`
-      : `<div class="prio-done-hd">✓ 已达标${mobileMode ? ` ${done.length} 项` : ''}</div>${done.map(row).join('')}`;
+    const activeMore = mobileMode && activeAll.length > 3;
+    const doneHtml = !done.length ? '' : mobileMode
+      ? `<div class="prio-done-hd">✓ 已达标 ${done.length} 项 <button class="prio-expand" data-prio-done="${g.id}" style="float:right;min-height:36px;padding:4px 10px">${prioDoneExpanded[g.id] ? '收起' : '展开'}</button></div>${prioDoneExpanded[g.id] ? done.map(row).join('') : ''}`
+      : `<div class="prio-done-hd">✓ 已达标</div>${done.map(row).join('')}`;
     html += `<div class="prio-col${mobileMode&&prioActiveTab===g.id?' active':''}" data-g="${g.id}"><h4>${g.name} <span class="en">${g.en}</span></h4>` +
       activeItems.map(row).join('') +
-      (activeMore ? `<button class="prio-expand" data-prio-expand="${g.id}">展开全部（${activeAll.length} 项）</button>` : '') +
+      (activeMore ? `<button class="prio-expand" data-prio-expand="${g.id}">${prioExpanded[g.id] ? '收起' : `展开全部（${activeAll.length} 项）`}</button>` : '') +
       doneHtml +
       '</div>';
   });
@@ -907,11 +940,13 @@ function renderPrio() {
   document.getElementById('prioList').innerHTML = html;
   renderPrioTabs();
   document.querySelectorAll('[data-prio-expand]').forEach(btn => btn.onclick = () => {
-    prioExpanded[btn.dataset.prioExpand] = true;
+    const id = btn.dataset.prioExpand;
+    prioExpanded[id] = !prioExpanded[id];
     renderPrio();
   });
   document.querySelectorAll('[data-prio-done]').forEach(btn => btn.onclick = () => {
-    prioDoneExpanded[btn.dataset.prioDone] = true;
+    const id = btn.dataset.prioDone;
+    prioDoneExpanded[id] = !prioDoneExpanded[id];
     renderPrio();
   });
   // 优先级行交互：桌面左键 +1 / 右键 -1；触屏点击打开详情弹窗（弹窗内加减）
@@ -926,7 +961,7 @@ function renderPrio() {
     });
     el.addEventListener('click', e => {
       if (Date.now() - lastCtx < 600) return;  // 长按后松开的 click 忽略
-      if (isTouch) { openDetail(id, false); return; }
+      if (mobileMode) { openDetail(id, false); return; }
       state[id] = (state[id]||0) + 1;
       renderAll();
     });
@@ -1023,6 +1058,73 @@ window.addEventListener('scroll', hideTip, true);
 const isTouch = (('ontouchstart' in window) || navigator.maxTouchPoints > 0) || location.search.includes('touch=1');
 if (isTouch) document.body.classList.add('touch-mode');
 const mobileMode = isTouch || window.matchMedia('(max-width: 900px)').matches;
+document.body.classList.toggle('mobile-mode', mobileMode);
+const initialViewportHeight = window.innerHeight;
+function syncKeyboardActionBar() {
+  const vv = window.visualViewport;
+  const keyboardOpen = vv && initialViewportHeight - vv.height > 140;
+  document.getElementById('simActionBar').classList.toggle('keyboard-hidden', !!keyboardOpen);
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', syncKeyboardActionBar);
+  window.visualViewport.addEventListener('scroll', syncKeyboardActionBar);
+}
+syncKeyboardActionBar();
+const layerStack = [];
+let suppressPopstate = 0;
+function syncModalLock() {
+  if (mobileMode) {
+    const open = document.querySelector('.detail-modal.show, .search-modal.show');
+    document.body.classList.toggle('modal-open', !!open);
+  } else document.body.classList.remove('modal-open');
+}
+function showLayer(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('closing');
+  if (!el.classList.contains('show')) {
+    el.classList.add('show');
+    layerStack.push(id);
+    history.pushState({ eclipticaLayer: id }, '');
+  }
+  syncModalLock();
+}
+function hideLayer(id, fromPopstate = false) {
+  const el = document.getElementById(id);
+  if (!el || !el.classList.contains('show')) return;
+  const idx = layerStack.lastIndexOf(id);
+  if (idx >= 0) layerStack.splice(idx, 1);
+  if (!fromPopstate && idx >= 0) { suppressPopstate++; history.back(); }
+  el.classList.add('closing');
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => {
+    el.classList.remove('show', 'closing');
+    syncModalLock();
+  }, 180);
+  syncModalLock();
+}
+function topLayerId() {
+  for (let i = layerStack.length - 1; i >= 0; i--) {
+    const el = document.getElementById(layerStack[i]);
+    if (el && el.classList.contains('show')) return layerStack[i];
+  }
+  return null;
+}
+function closeTopLayer() {
+  const id = topLayerId();
+  if (id) hideLayer(id);
+}
+window.addEventListener('popstate', () => {
+  if (suppressPopstate) { suppressPopstate--; return; }
+  const id = topLayerId();
+  if (id) hideLayer(id, true);
+});
+window.addEventListener('backbutton', e => {
+  if (topLayerId()) { e.preventDefault?.(); closeTopLayer(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeTopLayer();
+});
 let dmSkillId = null;      // 详情弹窗当前技能
 let dmInitLayers = 0;      // 详情弹窗打开时的层数（取消时还原）
 let dmFromSearch = false;  // 详情是否由搜索弹窗打开
@@ -1066,7 +1168,7 @@ function openDetail(id, fromSearch) {
   dmSkillId = id; dmFromSearch = !!fromSearch;
   dmInitLayers = state[id] || 0;   // 记录打开时层数（取消时还原）
   renderDetail();
-  document.getElementById('detailModal').classList.add('show');
+  showLayer('detailModal');
 }
 function renderDetail() {
   const s = skillById(dmSkillId);
@@ -1078,7 +1180,7 @@ function renderDetail() {
   document.getElementById('dmBody').innerHTML = tooltipHtml(s, sc, y);
   document.getElementById('dmCount').textContent = `${state[s.id]||0}${y?`/${y}`:''}`;
 }
-function closeDetail() { document.getElementById('detailModal').classList.remove('show'); dmSkillId = null; }
+function closeDetail() { hideLayer('detailModal'); dmSkillId = null; }
 function cancelDetail() {
   if (dmSkillId) { state[dmSkillId] = dmInitLayers; renderAll(); }
   closeDetail();
@@ -1092,12 +1194,12 @@ function openArtModal(id) {
     ? `<b>🏺 ${a.zh}</b> <span class="en">${a.en}</span><div style="font-size:12.5px;color:var(--text-dim);margin-top:2px">${a.effect}</div><div style="font-size:12px;color:var(--text-dim);margin-top:2px">每小局获得 1 个，跨小局累积（上限 ${ARTIFACT_MAX} 个）</div>`
     : '';
   document.getElementById('artCount').textContent = `${artifactState[id]||0}`;
-  document.getElementById('artModal').classList.add('show');
+  showLayer('artModal');
 }
 function renderArtCount() {
   document.getElementById('artCount').textContent = `${artifactState[artId]||0}`;
 }
-function closeArtModal() { document.getElementById('artModal').classList.remove('show'); artId = null; }
+function closeArtModal() { hideLayer('artModal'); artId = null; }
 function cancelArtModal() {
   if (artId) { artifactState[artId] = artInit; renderAll(); }
   closeArtModal();
@@ -1105,12 +1207,12 @@ function cancelArtModal() {
 
 // 搜索弹窗（手机端）
 function openSearchModal() {
-  document.getElementById('searchModal').classList.add('show');
+  showLayer('searchModal');
   document.getElementById('smKw').value = '';
   renderPicker('smPicker');
   updateSearchDone();
 }
-function closeSearchModal() { document.getElementById('searchModal').classList.remove('show'); }
+function closeSearchModal() { hideLayer('searchModal'); }
 
 // 优先级选项卡（手机端：点击切换三商店）
 let prioActiveTab = 'chrono';
@@ -1130,6 +1232,83 @@ const _origPrioColHtml = null;
 function currentPointTotal() {
   return Object.values(state).reduce((sum, n) => sum + (Number(n) || 0), 0);
 }
+function snapshotSimState() {
+  return {
+    state: { ...state },
+    runeOrder: [...runeOrder],
+    curseOrder: [...curseOrder],
+    artifactState: { ...artifactState }
+  };
+}
+function restoreSimSnapshot(snap) {
+  state = { ...snap.state };
+  runeOrder.splice(0, runeOrder.length, ...snap.runeOrder);
+  curseOrder.splice(0, curseOrder.length, ...snap.curseOrder);
+  Object.keys(artifactState).forEach(k => delete artifactState[k]);
+  Object.assign(artifactState, snap.artifactState);
+  renderAll();
+}
+let snackbarTimer = null;
+function showSnackbar(msg, undoFn) {
+  const box = document.getElementById('snackbar');
+  document.getElementById('snackbarMsg').textContent = msg;
+  const undo = document.getElementById('snackbarUndo');
+  undo.style.display = undoFn ? '' : 'none';
+  undo.onclick = () => { if (undoFn) undoFn(); hideSnackbar(); };
+  box.classList.add('show');
+  clearTimeout(snackbarTimer);
+  snackbarTimer = setTimeout(hideSnackbar, 3500);
+}
+function hideSnackbar() {
+  const box = document.getElementById('snackbar');
+  if (box) box.classList.remove('show');
+  clearTimeout(snackbarTimer);
+}
+function clearPointsWithUndo() {
+  const points = currentPointTotal();
+  if (!points) { showSnackbar('当前没有加点'); return; }
+  const before = snapshotSimState();
+  state = {};
+  clearBuildExtras();
+  renderAll();
+  showSnackbar(`已清空 ${points} 点`, () => restoreSimSnapshot(before));
+}
+function fillBuildWithUndo() {
+  const b = buildOf(currentCls, currentArch);
+  if (!b) { showSnackbar('当前没有可填充的流派 Build'); return; }
+  const before = snapshotSimState();
+  state = {};
+  b.must.forEach(m => { if (m.count) state[m.id] = m.count; });
+  b.nice.forEach(m => { if (m.count) state[m.id] = m.count; });
+  renderAll();
+  showSnackbar('已填充流派 Build 目标', () => restoreSimSnapshot(before));
+}
+function resetActionConfirm() {
+  const box = document.getElementById('actionConfirm');
+  box.style.display = 'none';
+  box.innerHTML = '';
+  document.getElementById('moreMenu').style.display = '';
+}
+function requestApplyBuild() {
+  const points = currentPointTotal();
+  if (!points) {
+    if (document.getElementById('moreDrawer').classList.contains('show')) runAfterMoreClosed(fillBuildWithUndo);
+    else fillBuildWithUndo();
+    return;
+  }
+  const box = document.getElementById('actionConfirm');
+  document.getElementById('moreMenu').style.display = 'none';
+  box.innerHTML = `将替换 ${points} 点加点<div class="dm-btns"><button id="actionConfirmYes" class="dm-ok">确认填充</button><button id="actionConfirmNo" class="dm-cancel">取消</button></div>`;
+  box.style.display = 'block';
+  showLayer('moreDrawer');
+  document.getElementById('actionConfirmYes').onclick = () => {
+    resetActionConfirm(); hideLayer('moreDrawer'); fillBuildWithUndo();
+  };
+  document.getElementById('actionConfirmNo').onclick = resetActionConfirm;
+}
+function openMoreDrawer() { resetActionConfirm(); showLayer('moreDrawer'); }
+function closeMoreDrawer() { resetActionConfirm(); hideLayer('moreDrawer'); }
+function runAfterMoreClosed(fn) { closeMoreDrawer(); setTimeout(fn, 190); }
 function clearBuildExtras() {
   runeOrder.length = 0;
   curseOrder.length = 0;
@@ -1170,7 +1349,7 @@ function commitBuildDraft(force) {
   renderArchBadge();
   renderAll();
   document.getElementById('buildModalConfirm').style.display = 'none';
-  document.getElementById('buildModal').classList.remove('show');
+  hideLayer('buildModal');
 }
 clsSel.onchange = () => {
   currentCls = clsSel.value;
@@ -1184,23 +1363,23 @@ document.getElementById('archPickBtn').onclick = openBuildModal;
 document.getElementById('buildModalOk').onclick = () => commitBuildDraft(false);
 document.getElementById('buildModalCancel').onclick = () => {
   document.getElementById('buildModalConfirm').style.display = 'none';
-  document.getElementById('buildModal').classList.remove('show');
+  hideLayer('buildModal');
 };
 document.getElementById('buildModal').addEventListener('click', e => {
   if (e.target === document.getElementById('buildModal')) {
     document.getElementById('buildModalConfirm').style.display = 'none';
-    document.getElementById('buildModal').classList.remove('show');
+    hideLayer('buildModal');
   }
 });
 // 保存自定义 Build
-document.getElementById('btnSaveCustom').onclick = () => document.getElementById('saveModal').classList.add('show');
-document.getElementById('saveCancel').onclick = () => document.getElementById('saveModal').classList.remove('show');
+document.getElementById('btnSaveCustom').onclick = () => showLayer('saveModal');
+document.getElementById('saveCancel').onclick = () => hideLayer('saveModal');
 document.getElementById('saveConfirm').onclick = () => {
   const name = document.getElementById('saveName').value.trim();  // 首尾空格自动删除
   if (!name) { alert('Build 名称不能为空，请输入名称后再保存。'); return; }  // 不可留空/全空格
   const r = saveCurrentAsCustom(name);
   if (r.ok) {
-    document.getElementById('saveModal').classList.remove('show');
+    hideLayer('saveModal');
     document.getElementById('saveName').value = '';
     fillArchetypes();
     // 选中刚保存的自定义（含恢复符文/神器）
@@ -1212,7 +1391,7 @@ document.getElementById('saveConfirm').onclick = () => {
   }
 };
 document.getElementById('saveModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('saveModal')) document.getElementById('saveModal').classList.remove('show');
+  if (e.target === document.getElementById('saveModal')) hideLayer('saveModal');
 });
 // 搜索框防抖 + 焦点保持（移动端 IME 输入大列表重渲染时防失焦）
 function bindSearchInput(input, fn) {
@@ -1227,15 +1406,27 @@ function bindSearchInput(input, fn) {
   });
 }
 bindSearchInput(document.getElementById('skillKw'), () => renderPicker('skillPicker'));
-document.getElementById('btnReset').onclick = () => { state = {}; renderAll(); };
-document.getElementById('btnApplyBuild').onclick = () => {
-  const b = buildOf(currentCls, currentArch);
-  if (!b) return;
-  state = {};
-  b.must.forEach(m => { if (m.count) state[m.id] = m.count; });
-  b.nice.forEach(m => { if (m.count) state[m.id] = m.count; });
-  renderAll();
-};
+document.getElementById('btnReset').onclick = clearPointsWithUndo;
+document.getElementById('btnApplyBuild').onclick = requestApplyBuild;
+
+// 手机端模拟器操作条与更多抽屉
+document.getElementById('simAddBtn').onclick = openSearchModal;
+document.getElementById('simStatsBtn').onclick = renderStatsModal;
+document.getElementById('simMoreBtn').onclick = openMoreDrawer;
+document.getElementById('moreMenu').addEventListener('click', e => {
+  const item = e.target.closest('[data-more-action]');
+  if (!item) return;
+  const action = item.dataset.moreAction;
+  if (action === 'fill') { requestApplyBuild(); return; }
+  if (action === 'clear') { runAfterMoreClosed(clearPointsWithUndo); return; }
+  if (action === 'save') { runAfterMoreClosed(() => document.getElementById('btnSaveCustom').click()); return; }
+  if (action === 'share') { runAfterMoreClosed(() => document.getElementById('btnShare').click()); return; }
+  if (action === 'custom') { runAfterMoreClosed(() => { location.href = 'builds.html?custom=1'; }); }
+});
+document.getElementById('moreDrawer').addEventListener('click', e => {
+  if (e.target === document.getElementById('moreDrawer')) closeMoreDrawer();
+});
+document.getElementById('snackbarClose').onclick = hideSnackbar;
 
 // ---------- 移动端事件 ----------
 document.getElementById('searchTrigger').onclick = openSearchModal;
@@ -1264,9 +1455,9 @@ document.getElementById('btnSaveCustom').onclick = () => {
   document.getElementById('saveName').value = '';
   document.getElementById('saveNote').value = '';
   delete document.getElementById('saveModal').dataset.shareSig;
-  document.getElementById('saveModal').classList.add('show');
+  showLayer('saveModal');
 };
-document.getElementById('saveCancel').onclick = () => document.getElementById('saveModal').classList.remove('show');
+document.getElementById('saveCancel').onclick = () => hideLayer('saveModal');
 document.getElementById('saveConfirm').onclick = () => {
   const name = document.getElementById('saveName').value.trim();  // 首尾空格自动删除
   if (!name) { alert('Build 名称不能为空，请输入名称后再保存。'); return; }  // 不可留空/全空格
@@ -1274,7 +1465,7 @@ document.getElementById('saveConfirm').onclick = () => {
   const sig = document.getElementById('saveModal').dataset.shareSig || null;
   const r = saveCurrentAsCustom(name, note, sig);
   if (r.ok) {
-    document.getElementById('saveModal').classList.remove('show');
+    hideLayer('saveModal');
     document.getElementById('saveName').value = '';
     document.getElementById('saveNote').value = '';
     // 若从分享导入保存：锁定横幅按钮
@@ -1292,7 +1483,7 @@ document.getElementById('saveConfirm').onclick = () => {
   }
 };
 document.getElementById('saveModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('saveModal')) document.getElementById('saveModal').classList.remove('show');
+  if (e.target === document.getElementById('saveModal')) hideLayer('saveModal');
 });
 
 // 分享链接（名称/备注可选，长度受限）
@@ -1302,9 +1493,9 @@ document.getElementById('btnShare').onclick = () => {
   const cur = buildOf(currentCls, currentArch);
   document.getElementById('shareName').value = cur ? cur.archetype : '';
   document.getElementById('shareNote').value = '';
-  document.getElementById('shareModal').classList.add('show');
+  showLayer('shareModal');
 };
-document.getElementById('shareCancel').onclick = () => document.getElementById('shareModal').classList.remove('show');
+document.getElementById('shareCancel').onclick = () => hideLayer('shareModal');
 document.getElementById('shareConfirm').onclick = () => {
   const name = document.getElementById('shareName').value.trim();
   const note = document.getElementById('shareNote').value.trim();
@@ -1313,7 +1504,7 @@ document.getElementById('shareConfirm').onclick = () => {
   const code = encodeShareBuild(name, note);
   // code 字符集（字母数字 % . , =）全部 URL 安全，直接拼接（不再二次编码，保证 ?b= 取出与 sig 完全一致）
   const url = location.origin + location.pathname + '?b=' + code;
-  document.getElementById('shareModal').classList.remove('show');
+  hideLayer('shareModal');
   // 复制到剪贴板（兼容手机/电脑）
   copyText(url).then(ok => {
     const linkBox = document.getElementById('shareBanner');
@@ -1326,14 +1517,14 @@ document.getElementById('shareConfirm').onclick = () => {
   });
 };
 document.getElementById('shareModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('shareModal')) document.getElementById('shareModal').classList.remove('show');
+  if (e.target === document.getElementById('shareModal')) hideLayer('shareModal');
 });
 
 // 当前属性
 document.getElementById('btnStats').onclick = renderStatsModal;
-document.getElementById('statsOk').onclick = () => document.getElementById('statsModal').classList.remove('show');
+document.getElementById('statsOk').onclick = () => hideLayer('statsModal');
 document.getElementById('statsModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('statsModal')) document.getElementById('statsModal').classList.remove('show');
+  if (e.target === document.getElementById('statsModal')) hideLayer('statsModal');
 });
 document.getElementById('dmPlus').onclick = () => {
   if (!dmSkillId) return;

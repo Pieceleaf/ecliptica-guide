@@ -229,10 +229,11 @@ function renderBuild() {
 // 初始化：URL 参数定位（无参数时显示全部职业）
 const q = new URLSearchParams(location.search);
 const qCls = q.get('cls');
+const qCustom = q.get('custom') === '1';
 let hashCls = '';
 try { hashCls = location.hash ? decodeURIComponent(location.hash.slice(1)) : ''; } catch(e) {}
 const qArch = q.get('arch');
-currentCls = (qCls && D.classes.some(c=>c.id===qCls)) ? qCls
+currentCls = qCustom ? '__custom__' : (qCls && D.classes.some(c=>c.id===qCls)) ? qCls
   : (hashCls && D.classes.some(c=>c.id===hashCls)) ? hashCls : null;
 currentArch = null;
 renderClsBar();
