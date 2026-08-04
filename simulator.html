@@ -64,8 +64,10 @@
         <button id="btnReset" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer">清空加点</button>
         <button id="btnApplyBuild" style="background:rgba(240,180,41,.15);border:1px solid var(--accent);color:var(--accent);padding:6px 14px;border-radius:6px;cursor:pointer">一键填充流派 Build 目标</button>
         <button id="btnSaveCustom" style="background:rgba(86,156,255,.15);border:1px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:6px;cursor:pointer">💾 存为自定义 Build</button>
+        <button id="btnShare" style="background:rgba(86,156,255,.15);border:1px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:6px;cursor:pointer">🔗 分享</button>
         <button id="btnStats" style="background:rgba(86,156,255,.15);border:1px solid var(--blue);color:var(--blue);padding:6px 14px;border-radius:6px;cursor:pointer">📊 当前属性</button>
       </div>
+      <div id="shareBanner" class="share-banner" style="display:none"></div>
       <div class="tip" style="margin-top:10px">「一键填充」把当前流派 Build 的必须/准必须项填到推荐层数，方便对照你的实际加点差距。</div>
     </div>
 
@@ -195,7 +197,7 @@ function loadCustomBuilds() {
 function saveCustomBuilds() {
   try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(customBuilds)); } catch(e) {}
 }
-function saveCurrentAsCustom(name) {
+function saveCurrentAsCustom(name, shareSig) {
   const cur = buildOf(currentCls, currentArch);
   const must = [];
   let totalLayers = 0;
@@ -215,6 +217,7 @@ function saveCurrentAsCustom(name) {
     must, nice: [], avoid: [],
     runes: runeOrder.slice(),                     // 符文槽（含顺序倍率）
     artifacts: Object.entries(artifactState).filter(([,n])=>n>0),  // 神器（id, 层数）
+    shareSig: shareSig || null,                   // 分享密文签名（防重复保存）
     playstyle: '自定义 Build：从你的加点+符文+神器保存而来，可随时一键填充/对比。仅保存在本浏览器（localStorage）。',
     reroll: '',
   });
@@ -224,6 +227,81 @@ function saveCurrentAsCustom(name) {
 function deleteCustomBuild(id) {
   customBuilds = customBuilds.filter(b => b.archetypeId !== id);
   saveCustomBuilds();
+}
+
+// ---------- 自定义 Build 分享密文（E1 格式：纯文本高效压缩） ----------
+// E1.{clsIdx36}.{nameURI}.{skillIdx*count,...}.{runeIdx,...}.{artIdx*count,...}
+// 技能索引 = 按该职业 classSkills() 顺序（通用 0-61 + 职业专属 62+），层数用 base36 单字符（≤35 层）
+function encodeShareBuild() {
+  const skills = classSkills(currentCls);
+  const idxOf = {}; skills.forEach((s, i) => idxOf[s.id] = i);
+  const skillParts = [];
+  for (const [sid, n] of Object.entries(state)) {
+    if (n <= 0) continue;
+    const i = idxOf[sid]; if (i === undefined) continue;
+    skillParts.push(i.toString(36) + Math.min(n, 35).toString(36));
+  }
+  const cur = buildOf(currentCls, currentArch);
+  const name = cur ? cur.archetype : '分享的 Build';
+  const clsIdx = D.classes.findIndex(c => c.id === currentCls);
+  const runeParts = runeOrder.map(rid => D.runes.findIndex(r => r.id === rid).toString(36));
+  const artParts = Object.entries(artifactState).filter(([, n]) => n > 0)
+    .map(([aid, n]) => D.artifacts.findIndex(a => a.id === aid).toString(36) + Math.min(n, 35).toString(36));
+  return ['E1', clsIdx.toString(36), encodeURIComponent(name),
+    skillParts.join(','), runeParts.join(','), artParts.join(',')].join('.');
+}
+function decodeShareBuild(s) {
+  try {
+    const p = s.split('.');
+    if (p[0] !== 'E1' || p.length < 4) return null;
+    const cls = D.classes[parseInt(p[1], 36)];
+    if (!cls) return null;
+    const name = decodeURIComponent(p[2]) || '分享的 Build';
+    const skills = classSkills(cls.id);
+    const stateMap = {};
+    p[3].split(',').filter(Boolean).forEach(t => {
+      const i = parseInt(t.slice(0, -1), 36);
+      const n = parseInt(t.slice(-1), 36);
+      if (skills[i]) stateMap[skills[i].id] = n;
+    });
+    const runes = p[4] ? p[4].split(',').filter(Boolean).map(t => { const r = D.runes[parseInt(t, 36)]; return r ? r.id : null; }).filter(Boolean) : [];
+    const arts = {};
+    if (p[5]) p[5].split(',').filter(Boolean).forEach(t => {
+      const a = D.artifacts[parseInt(t.slice(0, -1), 36)];
+      if (a) arts[a.id] = parseInt(t.slice(-1), 36);
+    });
+    return { cls, name, state: stateMap, runes, artifacts: arts };
+  } catch (e) { return null; }
+}
+function applySharedBuild(decoded, sig) {
+  currentCls = decoded.cls.id;
+  clsSel.value = currentCls;
+  state = Object.assign({}, decoded.state);
+  runeOrder.length = 0; decoded.runes.forEach(r => runeOrder.push(r));
+  Object.keys(artifactState).forEach(k => delete artifactState[k]);
+  Object.assign(artifactState, decoded.artifacts);
+  fillArchetypes(); renderAll(); renderArchBadge();
+  // 预览横幅
+  const already = customBuilds.some(b => b.shareSig === sig);
+  const total = Object.values(decoded.state).reduce((a, n) => a + n, 0);
+  document.getElementById('shareBanner').innerHTML = `
+    <div class="sb-line"><b>📋 分享的 Build：${decoded.name}</b> <span style="color:var(--text-dim)">${decoded.cls.zh} · ${Object.keys(decoded.state).length} 项 / ${total} 层 ${decoded.runes.length ? '· 符文 ' + decoded.runes.length : ''} ${Object.keys(decoded.artifacts).length ? '· 神器 ' + Object.keys(decoded.artifacts).length : ''}</span></div>
+    <div class="sb-actions">
+      <button id="sbSave" ${already ? 'disabled style="opacity:.6"' : ''}>${already ? '✅ 已保存' : '💾 保存到本地'}</button>
+      <button id="sbClose">✕ 关闭</button>
+    </div>`;
+  document.getElementById('shareBanner').style.display = 'block';
+  const saveBtn = document.getElementById('sbSave');
+  if (saveBtn && !already) saveBtn.onclick = () => {
+    const r = saveCurrentAsCustom(decoded.name, sig);
+    if (r.ok) {
+      saveBtn.textContent = '✅ 已保存';
+      saveBtn.disabled = true; saveBtn.style.opacity = '.6';
+      document.getElementById('saveName').value = '';
+      fillArchetypes(); renderAll();
+    } else alert(r.msg);
+  };
+  document.getElementById('sbClose').onclick = () => document.getElementById('shareBanner').style.display = 'none';
 }
 
 // ---------- 流派选择 ----------
@@ -574,7 +652,7 @@ function renderPicker(cid) {
 // ---------- 三商店分组（点位） ----------
 // 显示顺序：时空法师（上）→ 机动之晶 → 忍耐之晶（下）
 const SHOP_GROUPS = [
-  { id:'chrono', name:'时空法师（伤害/暴击/元素 + 职业专属）', en:'Chrono Wizard' },
+  { id:'chrono', name:'时空法师（攻击属性 + 职业专属）', en:'Chrono Wizard' },
   { id:'mobility', name:'机动之晶（机动）', en:'Crystal of Mobility' },
   { id:'perseverance', name:'忍耐之晶（生存）', en:'Crystal of Perseverance' },
 ];
@@ -928,6 +1006,36 @@ document.getElementById('detailModal').addEventListener('click', e => {
   if (e.target === document.getElementById('detailModal')) closeDetail();  // 点遮罩关闭
 });
 
+// 分享链接（密文）
+document.getElementById('btnShare').onclick = () => {
+  const total = Object.values(state).reduce((a, n) => a + n, 0);
+  if (total < 21) { alert(`分享需要至少 21 点加点（当前 ${total} 点）。`); return; }
+  const code = encodeShareBuild();
+  // code 字符集（字母数字 % . , =）全部 URL 安全，直接拼接（不再二次编码，保证 ?b= 取出与 sig 完全一致）
+  const url = location.origin + location.pathname + '?b=' + code;
+  // 复制到剪贴板
+  const done = () => {
+    const linkBox = document.getElementById('shareBanner');
+    linkBox.innerHTML = `<div class="sb-line">✅ 分享链接已复制（含加点密文），发给朋友即可直接预览：</div>
+      <div class="sb-link">${url}</div>
+      <div class="sb-actions"><button id="sbClose">✕ 关闭</button></div>`;
+    linkBox.style.display = 'block';
+    document.getElementById('sbClose').onclick = () => linkBox.style.display = 'none';
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => done());
+  } else done();
+};
+
+// 初始化：支持分享链接 ?b=密文（必须在 loadCustomBuilds 之后）
+function initSharedUrl() {
+  const b = new URLSearchParams(location.search).get('b');
+  if (b) {
+    const decoded = decodeShareBuild(b);
+    if (decoded) applySharedBuild(decoded, b);
+  }
+}
+
 // ---------- 初始化 ----------
 loadCustomBuilds();
 const q = new URLSearchParams(location.search).get('cls');
@@ -936,6 +1044,7 @@ clsSel.value = currentCls;
 fillArchetypes();
 renderArchBadge();
 renderAll();
+initSharedUrl();
 </script>
 <script src="site.js"></script>
 </body>

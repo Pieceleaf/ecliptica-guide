@@ -304,6 +304,24 @@ td .jp { color: var(--text-dim); font-size: 11px; opacity: .8; display: block; }
 body.touch-mode .arch-row { display: none !important; }
 body.touch-mode .arch-pick-btn { display: block; }
 
+/* 分享横幅 */
+.share-banner {
+  margin-top: 12px; background: rgba(86,156,255,.08); border: 1px solid var(--blue);
+  border-radius: 10px; padding: 10px 12px; font-size: 13.5px;
+}
+.share-banner .sb-line { margin-bottom: 6px; }
+.share-banner .sb-link {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 10px; font-size: 12px; word-break: break-all; color: var(--text-dim);
+  margin-bottom: 8px; user-select: all;
+}
+.share-banner .sb-actions { display: flex; gap: 8px; }
+.share-banner .sb-actions button {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
+}
+.share-banner .sb-actions button:first-child { border-color: var(--blue); color: var(--blue); }
+
 /* 流派弹窗列表 */
 .bm-cls-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; }
 .bm-cls {
