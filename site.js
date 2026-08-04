@@ -82,11 +82,13 @@
   const interactive = '.class-card, .build-opt, .prio-item, .skill-icon, .boss-card, .enemy-card';
   function enhanceInteractive() {
     document.querySelectorAll(interactive).forEach(el => {
-      if (el.tabIndex < 0 || !el.hasAttribute('tabindex')) el.tabIndex = 0;
+      if (el.tabIndex >= 0) return;   // 已增强过，跳过（减少高频渲染开销）
+      el.tabIndex = 0;
       if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
     });
-    document.querySelectorAll('.skill-icon, .pick-row').forEach(el => {
-      if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
+    document.querySelectorAll('.pick-row').forEach(el => {
+      if (el.tabIndex >= 0) return;
+      el.tabIndex = 0;
       if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
     });
   }
@@ -125,20 +127,28 @@
     buildModal: '选择职业与 Build', saveModal: '保存自定义 Build', shareModal: '生成分享链接',
     moreDrawer: '更多操作', filterDrawer: '技能筛选', buildDrawer: 'Build 选择', siteMoreDrawer: '更多页面'
   };
+  let dialogEnhancing = false;   // 防止 observer 回调内 DOM 写入触发自身（死循环）
   function enhanceDialogs() {
-    document.querySelectorAll('.detail-modal, .search-modal').forEach(dialog => {
-      const title = dialog.querySelector('h2, h3, [data-dialog-title]') || (() => {
-        const node = document.createElement('span');
-        node.className = 'sr-only';
-        node.textContent = dialogLabels[dialog.id] || '对话框';
-        dialog.insertBefore(node, dialog.firstChild);
-        return node;
-      })();
-      if (!title.id) title.id = `${dialog.id}-title`;
-      dialog.setAttribute('role', 'dialog');
-      dialog.setAttribute('aria-modal', 'true');
-      dialog.setAttribute('aria-labelledby', title.id);
-    });
+    if (dialogEnhancing) return;
+    dialogEnhancing = true;
+    try {
+      document.querySelectorAll('.detail-modal, .search-modal').forEach(dialog => {
+        if (dialog.getAttribute('aria-labelledby')) return;   // 已增强过，跳过
+        const title = dialog.querySelector('h2, h3, [data-dialog-title], .sr-only') || (() => {
+          const node = document.createElement('span');
+          node.className = 'sr-only';
+          node.textContent = dialogLabels[dialog.id] || '对话框';
+          dialog.insertBefore(node, dialog.firstChild);
+          return node;
+        })();
+        if (!title.id) title.id = `${dialog.id}-title`;
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-labelledby', title.id);
+      });
+    } finally {
+      dialogEnhancing = false;
+    }
   }
   enhanceDialogs();
   new MutationObserver(enhanceDialogs).observe(document.body, { childList: true, subtree: true });
