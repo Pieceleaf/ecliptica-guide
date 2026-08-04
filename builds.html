@@ -76,16 +76,78 @@ function buildOf2(clsId, archId) {
   return D.builds.find(b => b.classId === clsId && b.archetypeId === archId);
 }
 
-function fillArchTabs() {
+// ---------- 分级选择：职业层 → 流派层 → 选中收起（点击已选项 = 取消该级选择） ----------
+function clsBtnHtml(cid, active, tag) {
+  const c = D.classes.find(x => x.id === cid);
+  return `<button data-cls="${cid}" style="background:${active?'rgba(240,180,41,.15)':'var(--bg3)'};border:1px solid ${active?'var(--accent)':'var(--border)'};color:${active?'var(--accent)':'var(--text)'};padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px">${tag}${c.zh} <small style="color:var(--text-dim)">${c.en}</small></button>`;
+}
+function archBtnHtml(archId, name, tag, active) {
+  return `<button data-arch="${archId}" style="background:${active?'rgba(240,180,41,.15)':'var(--bg3)'};border:1px solid ${active?'var(--accent)':'var(--border)'};color:${active?'var(--accent)':'var(--text)'};padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13.5px">${tag}${name}</button>`;
+}
+function renderClsBar() {
+  const bar = document.getElementById('buildTabs');
+  if (currentCls) {
+    // 已选职业：只保留当前职业按钮（+ 取消提示）
+    bar.innerHTML = (currentCls === '__custom__')
+      ? `<button data-cls="__custom__" style="background:rgba(86,156,255,.12);border:1px solid var(--blue);color:var(--blue);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600">✏️ 自定义 Build ${customBuilds.length ? `<small>(${customBuilds.length})</small>` : ''} <small style="opacity:.7">✓ 点此取消</small></button>`
+      : clsBtnHtml(currentCls, true, '') + ` <small style="color:var(--text-dim);font-size:12px;align-self:center">✓ 点职业按钮取消选择</small>`;
+  } else {
+    // 未选职业：全部职业按钮 + 自定义入口
+    bar.innerHTML = `<button data-cls="__custom__" style="background:rgba(86,156,255,.12);border:1px solid var(--blue);color:var(--blue);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600">✏️ 自定义 Build ${customBuilds.length ? `<small>(${customBuilds.length})</small>` : ''}</button>`
+      + D.classes.map(c => clsBtnHtml(c.id, false, '')).join('');
+  }
+  bar.querySelectorAll('button[data-cls]').forEach(btn => btn.onclick = () => {
+    if (btn.dataset.cls === currentCls) {
+      // 点击已选职业 = 取消选择（联动清除流派）
+      currentCls = null;
+      currentArch = null;
+      document.getElementById('archTabs').innerHTML = '';
+      document.getElementById('buildList').innerHTML = '';
+      renderClsBar();
+      return;
+    }
+    // 选择职业：收起其他职业，展开该职业全部流派
+    currentCls = btn.dataset.cls;
+    currentArch = null;
+    renderClsBar();
+    if (currentCls === '__custom__') {
+      document.getElementById('archTabs').innerHTML = '';
+      renderCustomList();
+    } else {
+      fillArchTabs(true);
+      renderBuild();
+    }
+  });
+}
+function fillArchTabs(expanded) {
   const box = document.getElementById('archTabs');
+  if (!currentCls || currentCls === '__custom__') { box.innerHTML = ''; return; }
   const bs = D.builds.filter(b => b.classId === currentCls);
   const vbs = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
-  const tabsHtml = (b, tag) => `
-    <button data-arch="${b.archetypeId}" style="background:${b.archetypeId===currentArch?'rgba(240,180,41,.15)':'var(--bg3)'};border:1px solid ${b.archetypeId===currentArch?'var(--accent)':'var(--border)'};color:${b.archetypeId===currentArch?'var(--accent)':'var(--text)'};padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13.5px">${tag}${b.archetype}</button>`;
-  box.innerHTML = '<span style="color:var(--text-dim);font-size:13px;align-self:center">流派：</span>'
-    + bs.map(b => tabsHtml(b, '')).join('')
-    + (vbs.length ? '<span style="color:var(--text-dim);font-size:13px;align-self:center;margin-left:6px">🌐 社区：</span>' + vbs.map(b => tabsHtml(b, '🌐 ')).join('') : '');
-  box.querySelectorAll('button').forEach(btn => btn.onclick = () => { currentArch = btn.dataset.arch; fillArchTabs(); renderBuild(); });
+  const archList = bs.map(b => ({ id: b.archetypeId, name: b.archetype, tag: '' }))
+    .concat(vbs.map(b => ({ id: b.archetypeId, name: b.archetype, tag: '🌐 ' })));
+  if (currentArch && !expanded) {
+    // 已选流派：只保留当前流派按钮（点击 = 取消选择 → 展开全部）
+    const sel = archList.find(a => a.id === currentArch);
+    if (sel) box.innerHTML = archBtnHtml(sel.id, sel.name, sel.tag, true) + ` <small style="color:var(--text-dim);font-size:12px;align-self:center">✓ 点流派按钮取消选择</small>`;
+    else box.innerHTML = '';
+  } else {
+    box.innerHTML = '<span style="color:var(--text-dim);font-size:13px;align-self:center">流派：</span>'
+      + archList.map(a => archBtnHtml(a.id, a.name, a.tag, a.id === currentArch)).join('');
+  }
+  box.querySelectorAll('button[data-arch]').forEach(btn => btn.onclick = () => {
+    if (btn.dataset.arch === currentArch) {
+      // 点击已选流派 = 取消选择 → 展开全部流派
+      currentArch = null;
+      fillArchTabs(true);
+      renderBuild();
+      return;
+    }
+    // 选择流派：收起其他流派，显示详情
+    currentArch = btn.dataset.arch;
+    fillArchTabs(false);
+    renderBuild();
+  });
 }
 
 // 自定义 Build 栏目：全部自定义方案列表
@@ -131,7 +193,12 @@ function renderCustomList() {
 
 function renderBuild() {
   const b = buildOf2(currentCls, currentArch);
-  if (!b) return;
+  if (!b) {
+    document.getElementById('buildList').innerHTML = currentCls
+      ? `<div class="card"><p style="color:var(--text-dim);font-size:14px">👆 选择一个流派查看 Build 详情。</p></div>`
+      : '';
+    return;
+  }
   const c = D.classes.find(x => x.id === b.classId);
   const block = (title, items, cls, headColor) => items && items.length ? `
     <div class="build-block ${cls}">
@@ -156,29 +223,24 @@ function renderBuild() {
     </div>`;
 }
 
-tabs.querySelectorAll('button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    tabs.querySelectorAll('button').forEach(b => { b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text)'; });
-    btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)';
-    currentCls = btn.dataset.cls;
-    if (currentCls === '__custom__') { renderCustomList(); return; }
-    const bs = D.builds.filter(b => b.classId === currentCls);
-    currentArch = bs[0].archetypeId;
-    fillArchTabs();
-    renderBuild();
-  });
-});
-
-// 初始化：URL 参数定位
+// 初始化：URL 参数定位（无参数时显示全部职业）
 const q = new URLSearchParams(location.search);
 const qCls = q.get('cls');
 const qArch = q.get('arch');
-currentCls = (qCls && D.classes.some(c=>c.id===qCls)) ? qCls : D.classes[0].id;
-const bs0 = D.builds.filter(b => b.classId === currentCls);
-currentArch = (qArch && bs0.some(b=>b.archetypeId===qArch)) ? qArch : bs0[0].archetypeId;
-tabs.querySelectorAll('button').forEach(b => { if (b.dataset.cls === currentCls) { b.style.borderColor = 'var(--accent)'; b.style.color = 'var(--accent)'; } });
-fillArchTabs();
-renderBuild();
+currentCls = (qCls && D.classes.some(c=>c.id===qCls)) ? qCls : null;
+currentArch = null;
+renderClsBar();
+if (currentCls) {
+  if (currentCls === '__custom__') { renderCustomList(); }
+  else {
+    const bs0 = D.builds.filter(b => b.classId === currentCls);
+    const vbs0 = (D.vrct_builds||[]).filter(b => b.classId === currentCls);
+    const all = bs0.map(b=>b.archetypeId).concat(vbs0.map(b=>b.archetypeId));
+    currentArch = (qArch && all.includes(qArch)) ? qArch : null;
+    fillArchTabs(!!currentArch);
+    renderBuild();
+  }
+}
 </script>
 <script src="site.js"></script>
 </body>

@@ -388,8 +388,15 @@ function renderBuildModal() {
   }
   // 流派层：顶部当前职业按钮（点击回职业层）+ 流派列表
   const clsInfo = D.classes.find(c => c.id === bmCls);
-  clsRow.innerHTML = `<button class="bm-cls" id="bmClsBack"><img src="icons/class_${bmCls}.png" alt="">${clsInfo ? clsInfo.zh : ''} <span style="opacity:.7">▾ 换职业</span></button>`;
-  document.getElementById('bmClsBack').onclick = () => { bmMode = 'cls'; renderBuildModal(); };
+  clsRow.innerHTML = `<button class="bm-cls" id="bmClsBack"><img src="icons/class_${bmCls}.png" alt="">${clsInfo ? clsInfo.zh : ''} <span style="opacity:.7">✓ 取消选择</span></button>`;
+  document.getElementById('bmClsBack').onclick = () => {
+    // 取消职业选择：联动清除流派，回职业层（全部职业展开）
+    currentArch = null;
+    archSel.value = '';
+    renderArchBadge(); renderAll();
+    bmMode = 'cls';
+    renderBuildModal();
+  };
   const bs = buildsOf(bmCls);
   const cs = customBuilds.filter(b => b.classId === bmCls);
   const vbs = (D.vrct_builds||[]).filter(b => b.classId === bmCls);
@@ -445,8 +452,11 @@ function renderBuildModal() {
         }
         return;
       }
-      // 收起态下点击已选流派 → 重新展开全部流派
+      // 收起态下点击已选流派 = 取消流派选择 → 展开全部流派（未选定）
       if (!bmArchExpanded && el.dataset.id === currentArch) {
+        currentArch = null;
+        archSel.value = '';
+        renderArchBadge(); renderAll();
         bmArchExpanded = true;
         renderBuildModal();
         return;
