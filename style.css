@@ -675,6 +675,12 @@ body.touch-mode .search-modal .sm-head { position: sticky; top: 0; z-index: 1; f
 body.touch-mode .search-modal .skill-picker { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 body.touch-mode .search-modal .sm-footer { position: sticky; bottom: 0; flex-shrink: 0; background: var(--bg); }
 body.sim-page.mobile-mode .icon-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 8px; padding: 10px 0; }
+/* 手机端：顶部工具按钮已由底部操作条（.sim-action-bar）替代，隐藏避免重复 */
+body.sim-page.mobile-mode #btnReset,
+body.sim-page.mobile-mode #btnApplyBuild,
+body.sim-page.mobile-mode #btnSaveCustom,
+body.sim-page.mobile-mode #btnShare,
+body.sim-page.mobile-mode #btnStats { display: none !important; }
 body.sim-page.mobile-mode .search-modal { height: 100dvh; max-height: 100dvh; padding: max(12px, env(safe-area-inset-top)) 12px env(safe-area-inset-bottom); }
 body.sim-page.mobile-mode .search-modal .sm-head { position: sticky; top: 0; z-index: 1; flex-shrink: 0; padding-top: 2px; background: var(--bg); }
 body.sim-page.mobile-mode .search-modal .skill-picker { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
