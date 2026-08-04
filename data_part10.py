@@ -1482,7 +1482,8 @@ ENEMIES = [
   "debuffs": [],
   "mech": [],
   "phase": "Prime",
-  "icon": "icons/enemy/Fly.png"
+  "icon": "icons/enemy/Fly.png",
+  "tips": "物理小飞虫（Beelzebub 战最多 9 只同时在场）——群攻/范围技能清掉即可。"
  },
  {
   "id": "voltwall",
@@ -1493,7 +1494,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Prime",
-  "icon": "icons/enemy/Status_Stun.png"
+  "icon": "icons/enemy/Status_Stun.png",
+  "tips": "电系远程怪，弹幕可挂麻痹——保持移动躲避；麻痹会强制破盾法格挡并瘫痪，T 位建议出麻痹抗性（社区实测）。"
  },
  {
   "id": "frost_sac",
@@ -1504,7 +1506,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Prime",
-  "icon": "icons/enemy/Status_Frozen.png"
+  "icon": "icons/enemy/Status_Frozen.png",
+  "tips": "冰弹幕怪，可挂冰冻——保持移动，被冻后让队友/净化处理。"
  },
  {
   "id": "peltapod",
@@ -1517,7 +1520,8 @@ ENEMIES = [
    "正面格挡"
   ],
   "phase": "Prime",
-  "icon": "icons/enemy/Status_Bleed.png"
+  "icon": "icons/enemy/Status_Bleed.png",
+  "tips": "正面格挡近战攻击——绕到侧面或背后输出，正面硬刚会被挡下。弱暗（社区实测暗属性散弹一颗 60+）。"
  },
  {
   "id": "acolyte",
@@ -1528,7 +1532,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Late Primal",
-  "icon": "icons/enemy/Status_Poison.png"
+  "icon": "icons/enemy/Status_Poison.png",
+  "tips": "物理+毒，可挂中毒——别站毒池，中毒后及时回复/净化。"
  },
  {
   "id": "lava_sac",
@@ -1539,7 +1544,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Late Primal",
-  "icon": "icons/enemy/Status_Fire.png"
+  "icon": "icons/enemy/Status_Fire.png",
+  "tips": "火弹幕怪，可挂灼烧——保持移动，别站火池。"
  },
  {
   "id": "too_tired",
@@ -1548,7 +1554,8 @@ ENEMIES = [
   "debuffs": [],
   "mech": [],
   "phase": "Late Primal",
-  "icon": "icons/enemy/TooTired.png"
+  "icon": "icons/enemy/TooTired.png",
+  "tips": "物理——无特殊机制，常规输出。"
  },
  {
   "id": "cone_bomber",
@@ -1559,7 +1566,8 @@ ENEMIES = [
    "紫色攻击（无视防御）"
   ],
   "phase": "Penumbra",
-  "icon": "icons/enemy/ConeBomber.png"
+  "icon": "icons/enemy/ConeBomber.png",
+  "tips": "物理+紫色攻击——紫色攻击无视防御但一定有蓄力提示（社区实测），看到紫蓄力立即远离。"
  },
  {
   "id": "cone_enforcer",
@@ -1571,7 +1579,8 @@ ENEMIES = [
    "红绿灯机制（绿灯行"
   ],
   "phase": "Penumbra",
-  "icon": "icons/enemy/Status_Stop.png"
+  "icon": "icons/enemy/Status_Stop.png",
+  "tips": "红绿灯机制：红灯时停下别动（移动会吃伤害），绿灯时再移动/输出；与 Cone Head Boss 同机制，观察灯色再走。"
  },
  {
   "id": "ice_squid",
@@ -1582,7 +1591,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Penumbra",
-  "icon": "icons/enemy/Status_Frozen.png"
+  "icon": "icons/enemy/Status_Frozen.png",
+  "tips": "冰系，可挂冰冻——移动躲冰弹。"
  },
  {
   "id": "black_lily_token",
@@ -1593,7 +1603,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Penumbra",
-  "icon": "icons/enemy/Status_Weak.png"
+  "icon": "icons/enemy/Status_Weak.png",
+  "tips": "光系，可挂虚弱——虚弱削减输出，优先清掉（Boss 战最多同时 3 个）。"
  },
  {
   "id": "black_lily_token",
@@ -1604,7 +1615,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Penumbra",
-  "icon": "icons/enemy/Status_Weak.png"
+  "icon": "icons/enemy/Status_Weak.png",
+  "tips": "光系，可挂虚弱——虚弱削减输出，优先清掉（Boss 战最多同时 3 个）。"
  },
  {
   "id": "carnie",
@@ -1617,7 +1629,8 @@ ENEMIES = [
    "紫色攻击（无视防御）"
   ],
   "phase": "Penumbra",
-  "icon": "icons/enemy/Status_Fire.png"
+  "icon": "icons/enemy/Status_Fire.png",
+  "tips": "火+毒双属性，区域攻击全是紫色（无视防御）——躲开地面火/毒区域，紫蓄力时远离。"
  },
  {
   "id": "curious_creature",
@@ -1630,7 +1643,8 @@ ENEMIES = [
    "正面格挡"
   ],
   "phase": "Penumbra",
-  "icon": "icons/enemy/Status_Bleed.png"
+  "icon": "icons/enemy/Status_Bleed.png",
+  "tips": "同 Peltapod：正面格挡，绕侧/背后攻击。"
  },
  {
   "id": "voltwalker",
@@ -1641,7 +1655,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Penumbra",
-  "icon": "icons/enemy/Status_Stun.png"
+  "icon": "icons/enemy/Status_Stun.png",
+  "tips": "电系怪，可挂麻痹——同 Voltwall：躲弹幕，T 位备麻痹抗性。"
  },
  {
   "id": "lizord",
@@ -1652,7 +1667,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Late Penumbra",
-  "icon": "icons/enemy/Status_Fire.png"
+  "icon": "icons/enemy/Status_Fire.png",
+  "tips": "火系，灼烧——移动躲避火球。"
  },
  {
   "id": "manalyte",
@@ -1663,7 +1679,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Late Penumbra",
-  "icon": "icons/enemy/Status_Breach.png"
+  "icon": "icons/enemy/Status_Breach.png",
+  "tips": "暗系，可挂破甲——破甲后防御降低，被挂破甲时别硬吃大伤害。"
  },
  {
   "id": "ash_horn",
@@ -1674,7 +1691,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Antumbra",
-  "icon": "icons/enemy/Status_Fire.png"
+  "icon": "icons/enemy/Status_Fire.png",
+  "tips": "火系，灼烧——同 Lizord。"
  },
  {
   "id": "concrete_revanent",
@@ -1683,7 +1701,8 @@ ENEMIES = [
   "debuffs": [],
   "mech": [],
   "phase": "Antumbra",
-  "icon": "icons/enemy/Concrete_Golem.png"
+  "icon": "icons/enemy/Concrete_Golem.png",
+  "tips": "物理——常规输出，注意近战距离。"
  },
  {
   "id": "mother_sac",
@@ -1694,7 +1713,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Antumbra",
-  "icon": "icons/enemy/Status_Fire.png"
+  "icon": "icons/enemy/Status_Fire.png",
+  "tips": "火+冰双属性弹幕，可挂灼烧与冰冻——移动躲避，异常及时处理。"
  },
  {
   "id": "volt_buster",
@@ -1705,7 +1725,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Antumbra",
-  "icon": "icons/enemy/Status_Stun.png"
+  "icon": "icons/enemy/Status_Stun.png",
+  "tips": "电系怪，麻痹 debuff——躲闪电，T 位备麻痹抗性。"
  },
  {
   "id": "aspiopod",
@@ -1716,7 +1737,8 @@ ENEMIES = [
    "正面格挡"
   ],
   "phase": "Umbra",
-  "icon": "icons/enemy/Aspiopod.png"
+  "icon": "icons/enemy/Aspiopod.png",
+  "tips": "正面格挡，绕侧/背后攻击。"
  },
  {
   "id": "black_virtue",
@@ -1727,7 +1749,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Umbra",
-  "icon": "icons/enemy/Status_Weak.png"
+  "icon": "icons/enemy/Status_Weak.png",
+  "tips": "光系，虚弱+衰减——优先清，别让它持续叠 debuff。"
  },
  {
   "id": "big_sigma",
@@ -1738,7 +1761,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Umbra",
-  "icon": "icons/enemy/Status_Weak.png"
+  "icon": "icons/enemy/Status_Weak.png",
+  "tips": "光系，虚弱+衰减——同 Black Virtue，优先清。"
  },
  {
   "id": "cloud_dragonkin",
@@ -1749,7 +1773,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Umbra",
-  "icon": "icons/enemy/Status_Fire.png"
+  "icon": "icons/enemy/Status_Fire.png",
+  "tips": "火+雷，灼烧+麻痹——移动躲弹幕，麻痹注意（破格挡）。"
  },
  {
   "id": "elder_manalyte",
@@ -1760,7 +1785,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Umbra",
-  "icon": "icons/enemy/Status_Breach.png"
+  "icon": "icons/enemy/Status_Breach.png",
+  "tips": "暗系，可挂破甲（Abaddon 战召唤）——优先处理召唤物或躲开破甲弹。"
  },
  {
   "id": "shamanic_compound",
@@ -1771,7 +1797,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Umbra",
-  "icon": "icons/enemy/Status_Poison.png"
+  "icon": "icons/enemy/Status_Poison.png",
+  "tips": "物理+毒，中毒+衰减——别站毒池，清 debuff 优先。"
  },
  {
   "id": "eclipse_warden",
@@ -1782,7 +1809,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Late Umbra",
-  "icon": "icons/enemy/Status_Weak.png"
+  "icon": "icons/enemy/Status_Weak.png",
+  "tips": "光系，虚弱+衰减——保持距离输出，debuff 及时处理。"
  },
  {
   "id": "peltapod_guard",
@@ -1795,7 +1823,8 @@ ENEMIES = [
    "自增益：坚守"
   ],
   "phase": "Eclipse",
-  "icon": "icons/enemy/Status_Empower.png"
+  "icon": "icons/enemy/Status_Empower.png",
+  "tips": "破武器后自增益（强力+坚守）——在其武器被破坏前尽快击杀；Vesra 战击杀它可破茧。"
  },
  {
   "id": "nightwalker",
@@ -1806,7 +1835,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Eclipse",
-  "icon": "icons/enemy/Status_Breach.png"
+  "icon": "icons/enemy/Status_Breach.png",
+  "tips": "暗系，可挂破甲——同 Manalyte。"
  },
  {
   "id": "black_chimera",
@@ -1817,7 +1847,8 @@ ENEMIES = [
   ],
   "mech": [],
   "phase": "Late Eclipse",
-  "icon": "icons/enemy/Status_Weak.png"
+  "icon": "icons/enemy/Status_Weak.png",
+  "tips": "光系，虚弱+衰减——高阶段怪，保持距离，debuff 及时净化。"
  }
 ]
 BOSS_ENEMIES = [

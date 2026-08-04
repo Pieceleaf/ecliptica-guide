@@ -185,6 +185,7 @@ function renderEnemies() {
       ${e.damage ? `<div class="upg-effect" style="margin-top:6px">伤害：<b>${esc(e.damage)}</b></div>` : ''}
       ${(e.debuffs||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.debuffs.map(d => `<span class="tag" style="border-color:var(--red);color:var(--red)">施加：${esc(d)}</span>`).join('')}</div>` : ''}
       ${(e.mech||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.mech.map(m => `<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(m)}</span>`).join('')}</div>` : ''}
+      ${e.tips ? `<div class="boss-sec" style="margin-top:6px"><h4>🛡 应对</h4><p>${esc(e.tips)}</p></div>` : ''}
     </div>`;
   const bossRel = (D.boss_enemies||[]).filter(e => !enemyKw || (e.name + ' ' + (e.boss||'') + ' ' + (e.damage||'')).toLowerCase().includes(enemyKw));
   const bossRelHtml = bossRel.length ? `
@@ -198,6 +199,7 @@ function renderEnemies() {
       ${e.damage ? `<div class="upg-effect" style="margin-top:6px">伤害：<b>${esc(e.damage)}</b></div>` : ''}
       ${(e.debuffs||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.debuffs.map(d => `<span class="tag" style="border-color:var(--red);color:var(--red)">施加：${esc(d)}</span>`).join('')}</div>` : ''}
       ${(e.mech||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.mech.map(m => `<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(m)}</span>`).join('')}</div>` : ''}
+      ${e.tips ? `<div class="boss-sec" style="margin-top:6px"><h4>🛡 应对</h4><p>${esc(e.tips)}</p></div>` : ''}
     </div>`).join('') + `</div>` : '';
   document.getElementById('enemiesPanel').innerHTML =
     `<div class="tip" style="margin-bottom:12px">共 ${(D.enemies||[]).length} 种怪物 · 数据来源：<a href="https://ecliptica.miraheze.org/wiki/Enemies" target="_blank" style="color:var(--blue)">英文 wiki（Miraheze）</a>。怪物按阶段出现，部分可施加异常或拥有特殊机制。</div>`
