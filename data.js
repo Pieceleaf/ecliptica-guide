@@ -4584,7 +4584,7 @@ const ECLIPTICA_DATA = {
    "archetype": "牢剑站起来了！",
    "title": "牢剑站起来了！",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 荷包蛋",
+   "source": "VRCT 社区分享 · 荷包蛋",
    "note": "牢剑不牢？了！加点总和为35点，木桩实测1500+DPS，半路可以抓一两个反射（受到伤害获得一层狂乱+50%攻击速度）",
    "must": [
     {
@@ -4664,7 +4664,7 @@ const ECLIPTICA_DATA = {
    "archetype": "常规奶",
    "title": "常规奶",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 空蝶猫",
+   "source": "VRCT 社区分享 · 空蝶猫",
    "note": "适用于绝大多数对局的泛用性搭配，花费更少的Token换取更强的生存能力，并使用强大的守备技能替换防御力的作用，以此构建更全面的适应能力",
    "must": [
     {
@@ -4799,7 +4799,7 @@ const ECLIPTICA_DATA = {
    "archetype": "跳跳乐",
    "title": "跳跳乐",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 芒心",
+   "source": "VRCT 社区分享 · 芒心",
    "note": "纯输出+基础机动跳锤，输出金齐全的话单靶5-6k",
    "must": [
     {
@@ -4899,7 +4899,7 @@ const ECLIPTICA_DATA = {
    "archetype": "纯肉T盾法",
    "title": "纯肉T盾法",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 柚鼬莱",
+   "source": "VRCT 社区分享 · 柚鼬莱",
    "note": "在我看来，很多人都对盾法有一个需要堆物理防御的误解。其实盾法的盾防可以化解绝大部分的物理攻击反而不需要物理防御，盾法更需要面对的则是半影阶段开始的大部分元素怪，从而添加元素防御或者总防",
    "must": [
     {
@@ -4989,7 +4989,7 @@ const ECLIPTICA_DATA = {
    "archetype": "丢锤锻体（兜底流）",
    "title": "丢锤锻体（兜底流）",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 空鸣结弦",
+   "source": "VRCT 社区分享 · 空鸣结弦",
    "note": "正常打残局双人，十分钟打10w没问题",
    "must": [
     {
@@ -5104,7 +5104,7 @@ const ECLIPTICA_DATA = {
    "archetype": "雷电法王",
    "title": "雷电法王",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 兔逸樂喵",
+   "source": "VRCT 社区分享 · 兔逸樂喵",
    "note": "比较吃运气，但是大概差不多就是这些主要的",
    "must": [
     {
@@ -5199,7 +5199,7 @@ const ECLIPTICA_DATA = {
    "archetype": "红绿灯跳光枪",
    "title": "红绿灯跳光枪",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · Saro Pawn",
+   "source": "VRCT 社区分享 · Saro Pawn",
    "note": "cd点满 符文尽量点一个伤害或者cd",
    "must": [
     {
@@ -5309,7 +5309,7 @@ const ECLIPTICA_DATA = {
    "archetype": "双手电法常规输出套半肉(主C套）jim打10-16W一个阶段。",
    "title": "双手电法常规输出套半肉(主C套）jim打10-16W一个阶段。",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · rescery",
+   "source": "VRCT 社区分享 · rescery",
    "note": "比较吃熟练度，活着才有输出，伤害全都躲掉。躲不了就硬吃几下没问题。构筑得好的话Boss战基本上一大半伤害全靠你一个人。符文的话返点和四选一，作者不去看一下其他符文的收益烂成什么样了。  点数总和虽然很多，但是配合反点不是不能做到的，而且也不是全都能拿到的，看自己取舍，往自己打的舒服的地方加就行。",
    "must": [
     {
@@ -5399,7 +5399,7 @@ const ECLIPTICA_DATA = {
    "archetype": "易伤流猫奶",
    "title": "易伤流猫奶",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 空蝶猫",
+   "source": "VRCT 社区分享 · 空蝶猫",
    "note": "版本更新后刚造出来的新玩法喵 并不是那么专注治疗的猫奶，有较为可观的输出，同时能做到易伤全局覆盖，并且还可以兼职奶妈来应急   *主要是道中简单有效，并且摆完挂机，非常省心的同时具有相当优秀的团队贡献   *在JIM战斗中表现有些区，召唤物站不住场，属于是硬伤了，目前没什么解决方法喵~",
    "must": [
     {
@@ -5494,7 +5494,7 @@ const ECLIPTICA_DATA = {
    "archetype": "Adelheid Fistmage",
    "title": "Adelheid Fistmage",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · Moyee Man",
+   "source": "VRCT 社区分享 · Moyee Man",
    "note": "My most common one-trick Fistmage build, gets me from prime to eclipse like 80% of the time I get to build it. Granted this isn't a 1-1, so substitute what you need to if you don't get what you want.",
    "must": [
     {
@@ -5629,7 +5629,7 @@ const ECLIPTICA_DATA = {
    "archetype": "ソロorフルパ　長射程高速弾命中重視バルーン　熟練不足？",
    "title": "ソロorフルパ　長射程高速弾命中重視バルーン　熟練不足？",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · aKa_VT",
+   "source": "VRCT 社区分享 · aKa_VT",
    "note": "火力も出せて耐えられるネコマンサーを模索中　保証込みで38トークン",
    "must": [
     {
@@ -5699,7 +5699,7 @@ const ECLIPTICA_DATA = {
    "archetype": "炮手物理流，本身比较蛆，仅作参考",
    "title": "炮手物理流，本身比较蛆，仅作参考",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 33333333",
+   "source": "VRCT 社区分享 · 33333333",
    "note": "物理流的炮手尝试出来的，比较高伤的打法，具体出伤不依赖算盘，关于板砖和玻璃大炮的加成可以视当前对局进展而定，此处只报关键加成，目标攻速是到200左右，物理伤害加成200左右",
    "must": [
     {
@@ -5744,7 +5744,7 @@ const ECLIPTICA_DATA = {
    "archetype": "(プレイが強いヒーラーウォーロック)玩法很强的书奶",
    "title": "(プレイが強いヒーラーウォーロック)玩法很强的书奶",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 甜味苦瓜",
+   "source": "VRCT 社区分享 · 甜味苦瓜",
    "note": "（以下の中国語を、翻訳機で説明してください）加点顺序为选技能时的技能的优先级，优先级最高的技能必拿。",
    "must": [
     {
@@ -5894,7 +5894,7 @@ const ECLIPTICA_DATA = {
    "archetype": "爆破炮狙击娱乐",
    "title": "爆破炮狙击娱乐",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · Okazaki・楽",
+   "source": "VRCT 社区分享 · Okazaki・楽",
    "note": "",
    "must": [
     {
@@ -6004,7 +6004,7 @@ const ECLIPTICA_DATA = {
    "archetype": "暗法",
    "title": "暗法",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · MRximxin11",
+   "source": "VRCT 社区分享 · MRximxin11",
    "note": "大部分boss没有暗属性抗性  大部分小怪没有暗属性抗性 打起来自带破甲",
    "must": [
     {
@@ -6104,7 +6104,7 @@ const ECLIPTICA_DATA = {
    "archetype": "三局jim damage13w出装(顺序为优先级)",
    "title": "三局jim damage13w出装(顺序为优先级)",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 甜味苦瓜",
+   "source": "VRCT 社区分享 · 甜味苦瓜",
    "note": "",
    "must": [
     {
@@ -6264,7 +6264,7 @@ const ECLIPTICA_DATA = {
    "archetype": "肉枪",
    "title": "肉枪",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · MRximxin11",
+   "source": "VRCT 社区分享 · MRximxin11",
    "note": "原来光枪其实是坦克位 总是被手刀吓哭怎么办？ 我这里有更轮椅的打法 生命320 攻速 240 物理防御240+ 伤害随便吃 ，打的还没我回的快 没有数值，只有快乐",
    "must": [
     {
@@ -6349,7 +6349,7 @@ const ECLIPTICA_DATA = {
    "archetype": "甩锤",
    "title": "甩锤",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · guanshanglai",
+   "source": "VRCT 社区分享 · guanshanglai",
    "note": "甩锤",
    "must": [
     {
@@ -6414,7 +6414,7 @@ const ECLIPTICA_DATA = {
    "archetype": "麻痺！",
    "title": "麻痺！",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · sirokuroro",
+   "source": "VRCT 社区分享 · sirokuroro",
    "note": "",
    "must": [
     {
@@ -6484,7 +6484,7 @@ const ECLIPTICA_DATA = {
    "archetype": "毒奶/书奶 攻速吸血流",
    "title": "毒奶/书奶 攻速吸血流",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · Saro Pawn",
+   "source": "VRCT 社区分享 · Saro Pawn",
    "note": "毒奶攻速吸血",
    "must": [
     {
@@ -6604,7 +6604,7 @@ const ECLIPTICA_DATA = {
    "archetype": "牢拳太有操作了",
    "title": "牢拳太有操作了",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · MRximxin11",
+   "source": "VRCT 社区分享 · MRximxin11",
    "note": "牢拳这么高的生命就是用来点玻璃大炮的 牢拳在战斗中臭了一定是奶妈不够努力给你叠保护 牢拳数值这么高为什么没人玩啊",
    "must": [
     {
@@ -6714,7 +6714,7 @@ const ECLIPTICA_DATA = {
    "archetype": "流血只能一人挂 🗡",
    "title": "流血只能一人挂 🗡",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · Saro Pawn",
+   "source": "VRCT 社区分享 · Saro Pawn",
    "note": "牢剑 记得带暴击符文",
    "must": [
     {
@@ -6819,7 +6819,7 @@ const ECLIPTICA_DATA = {
    "archetype": "牢剑旋风狂战操作套",
    "title": "牢剑旋风狂战操作套",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · rescery",
+   "source": "VRCT 社区分享 · rescery",
    "note": "构筑好DPS直接上1.6-2K。单人随便破JIM3的桶。可以当成输出更加舒服更高的丢锤来玩，但是机动性肯定不如大锤。  点数总和虽然很多，但是配合反点不是不能做到的，而且也不是全都能拿到的，看自己取舍，往自己打的舒服的地方加就行。 但是牢剑就是牢剑，之前的boss战你没办法像其他输出位一样力挽狂澜。遇到近战难打的怪还是很难受。 核心技能是旋风和近战狂战。吃到版本红利，近战狂战数值是远程狂战的两倍。",
    "must": [
     {
@@ -6929,7 +6929,7 @@ const ECLIPTICA_DATA = {
    "archetype": "冰暴盾【兜底盾】",
    "title": "冰暴盾【兜底盾】",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 折耳小花猫",
+   "source": "VRCT 社区分享 · 折耳小花猫",
    "note": "要有点熟练度，紫色伤害最好不要硬吃，能抗能打伤害。放弃左键不要攻速。",
    "must": [
     {
@@ -7044,7 +7044,7 @@ const ECLIPTICA_DATA = {
    "archetype": "风电手",
    "title": "风电手",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 木杉木杉",
+   "source": "VRCT 社区分享 · 木杉木杉",
    "note": "依旧前期电手，后期尝试使用风手打输出，仅测试使用",
    "must": [
     {
@@ -7124,7 +7124,7 @@ const ECLIPTICA_DATA = {
    "archetype": "单手光法稳定流",
    "title": "单手光法稳定流",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 炸薯条",
+   "source": "VRCT 社区分享 · 炸薯条",
    "note": "单手光法，被削也只是前期，前期用电手渡过，实测后期一下白字来到220左右红字430左右（没削之前，本人也拿 这套只剩一人输出情况破核废水，这套需要点熟练目押躲手刀，不带狂战士图打的舒服不用担心太多",
    "must": [
     {
@@ -7234,7 +7234,7 @@ const ECLIPTICA_DATA = {
    "archetype": "双手电法麻痹流",
    "title": "双手电法麻痹流",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · Saro Pawn",
+   "source": "VRCT 社区分享 · Saro Pawn",
    "note": "双手电法麻痹流 电击小子",
    "must": [
     {
@@ -7329,7 +7329,7 @@ const ECLIPTICA_DATA = {
    "archetype": "烧伤火法",
    "title": "烧伤火法",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 小仨",
+   "source": "VRCT 社区分享 · 小仨",
    "note": "继光法削弱后的替代玩法，强度不错，主打烧伤",
    "must": [
     {
@@ -7409,7 +7409,7 @@ const ECLIPTICA_DATA = {
    "archetype": "常规盾",
    "title": "常规盾",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 空蝶猫",
+   "source": "VRCT 社区分享 · 空蝶猫",
    "note": "适用于常规流程的大盾泛用组合，主要对JIM战环境进行了特化搭配 对于道中环境而言存在相对依赖队友，无法应对密集小怪的问题 需要一定熟练度    *需要注意的是，此套加点本身不具有输出能力，在残局时仅能支持自身生存无恙，仍需队友提供有效输出",
    "must": [
     {
@@ -7489,7 +7489,7 @@ const ECLIPTICA_DATA = {
    "archetype": "轮椅角色（丢锤）",
    "title": "轮椅角色（丢锤）",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 荷包蛋",
+   "source": "VRCT 社区分享 · 荷包蛋",
    "note": "实测木桩2500+DPS 丢锤真是轮轮又椅椅，依旧35点，点你照着抓，没有2000DPS你来线上肘击我）",
    "must": [
     {
@@ -7549,7 +7549,7 @@ const ECLIPTICA_DATA = {
    "archetype": "红绿灯跳锤 红灯走不动绿灯没伤害",
    "title": "红绿灯跳锤 红灯走不动绿灯没伤害",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · Saro Pawn",
+   "source": "VRCT 社区分享 · Saro Pawn",
    "note": "吃手法容易死",
    "must": [
     {
@@ -7639,7 +7639,7 @@ const ECLIPTICA_DATA = {
    "archetype": "暗枪娱乐",
    "title": "暗枪娱乐",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · Okazaki・楽",
+   "source": "VRCT 社区分享 · Okazaki・楽",
    "note": "娱乐support暗枪",
    "must": [
     {
@@ -7739,7 +7739,7 @@ const ECLIPTICA_DATA = {
    "archetype": "双生法师双光搭配（数值怪）",
    "title": "双生法师双光搭配（数值怪）",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 荷包蛋",
+   "source": "VRCT 社区分享 · 荷包蛋",
    "note": "如果真的有很多狂战士bro你DPS一定能起飞，没有坐牢但也能用快拳打打",
    "must": [
     {
@@ -7829,7 +7829,7 @@ const ECLIPTICA_DATA = {
    "archetype": "双生法师技能加点 0.5Beta",
    "title": "双生法师技能加点 0.5Beta",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 白狼",
+   "source": "VRCT 社区分享 · 白狼",
    "note": "仅为个人理解，请自行抉择想要的加点。",
    "must": [
     {
@@ -7979,7 +7979,7 @@ const ECLIPTICA_DATA = {
    "archetype": "常规猫奶",
    "title": "常规猫奶",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 空蝶猫",
+   "source": "VRCT 社区分享 · 空蝶猫",
    "note": "适用于绝大多数对局的泛用性搭配，专注于有效缓解队伍的奶量压力，并确保自身存活",
    "must": [
     {
@@ -8064,7 +8064,7 @@ const ECLIPTICA_DATA = {
    "archetype": "毛毛虫蠕动娱乐流",
    "title": "毛毛虫蠕动娱乐流",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 穗羊",
+   "source": "VRCT 社区分享 · 穗羊",
    "note": "你要坚信自己是一只毛毛虫，对敌人使用蠕动吧 喜欢赤石的来",
    "must": [
     {
@@ -8169,7 +8169,7 @@ const ECLIPTICA_DATA = {
    "archetype": "锤爹",
    "title": "锤爹",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 批量生产抑郁症",
+   "source": "VRCT 社区分享 · 批量生产抑郁症",
    "note": "只推荐重要的，老锤子了",
    "must": [
     {
@@ -8209,7 +8209,7 @@ const ECLIPTICA_DATA = {
    "archetype": "猫麻麻",
    "title": "猫麻麻",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 折耳小花猫",
+   "source": "VRCT 社区分享 · 折耳小花猫",
    "note": "是麻麻哦才不是混子！能扛揍的猫麻麻哦",
    "must": [
     {
@@ -8304,7 +8304,7 @@ const ECLIPTICA_DATA = {
    "archetype": "斗帝毒奶",
    "title": "斗帝毒奶",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · MaybeKami",
+   "source": "VRCT 社区分享 · MaybeKami",
    "note": "老东西终于把焚诀交出来了，一层斗者奶4次，二层大斗师能5次，三层斗王6次，四层斗皇7次，五层斗宗满能量能奶10次，此后每一级都是质变，六层斗尊14次，七层斗圣25次，八层斗帝满能量直接奶100次！右键按到手麻，医帝独断万古了",
    "must": [
     {
@@ -8424,7 +8424,7 @@ const ECLIPTICA_DATA = {
    "archetype": "兜底盾",
    "title": "兜底盾",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 折耳小花猫",
+   "source": "VRCT 社区分享 · 折耳小花猫",
    "note": "队友死完了就剩你了还能打点伤害",
    "must": [
     {
@@ -8539,7 +8539,7 @@ const ECLIPTICA_DATA = {
    "archetype": "肉法",
    "title": "肉法",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · MRximxin11",
+   "source": "VRCT 社区分享 · MRximxin11",
    "note": "总是被手刀吓哭怎么办？ 我这里有更轮椅的打法 生命320 攻速 210 物理防御240+ 伤害随便吃 ，打的还没我回的快 jim打你就是给你叠怪力被动，你打jim给自己叠守护 jim不打你就叠狂战 遇到大灾变 2m/s的速度是跑不掉的直接中心用名刀硬吃 a几下又满血了 有输出又有肉，太好玩了     （反击buff是风法打jim才能吃到）",
    "must": [
     {
@@ -8659,7 +8659,7 @@ const ECLIPTICA_DATA = {
    "archetype": "高熟练度砸锤",
    "title": "高熟练度砸锤",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 折耳小花猫",
+   "source": "VRCT 社区分享 · 折耳小花猫",
    "note": "攻速145就可以了，右键起飞。技能留着落地的瞬间躲技能，有名刀就可以不用点生命跟防御。",
    "must": [
     {
@@ -8779,7 +8779,7 @@ const ECLIPTICA_DATA = {
    "archetype": "三局jim damage13w出装(靠重刷房间凑天胡，BUG修复也能凑个雏形)",
    "title": "三局jim damage13w出装(靠重刷房间凑天胡，BUG修复也能凑个雏形)",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 甜味苦瓜",
+   "source": "VRCT 社区分享 · 甜味苦瓜",
    "note": "",
    "must": [
     {
@@ -8934,7 +8934,7 @@ const ECLIPTICA_DATA = {
    "archetype": "平a流牢剑！",
    "title": "平a流牢剑！",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · BangYaSan",
+   "source": "VRCT 社区分享 · BangYaSan",
    "note": "剑走偏锋",
    "must": [
     {
@@ -8974,7 +8974,7 @@ const ECLIPTICA_DATA = {
    "archetype": "肉奶毒麻麻【已被砍废】",
    "title": "肉奶毒麻麻【已被砍废】",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 折耳小花猫",
+   "source": "VRCT 社区分享 · 折耳小花猫",
    "note": "能抗能奶站撸jm",
    "must": [
     {
@@ -9114,7 +9114,7 @@ const ECLIPTICA_DATA = {
    "archetype": "老爷爷我来给你ccb咯",
    "title": "老爷爷我来给你ccb咯",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · guanshanglai",
+   "source": "VRCT 社区分享 · guanshanglai",
    "note": "头顶跳锤",
    "must": [
     {
@@ -9219,7 +9219,7 @@ const ECLIPTICA_DATA = {
    "archetype": "飞锤轮椅",
    "title": "飞锤轮椅",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 归处",
+   "source": "VRCT 社区分享 · 归处",
    "note": "",
    "must": [
     {
@@ -9344,7 +9344,7 @@ const ECLIPTICA_DATA = {
    "archetype": "跳锤",
    "title": "跳锤",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · kokoro",
+   "source": "VRCT 社区分享 · kokoro",
    "note": "",
    "must": [
     {
@@ -9454,7 +9454,7 @@ const ECLIPTICA_DATA = {
    "archetype": "绝命毒师！",
    "title": "绝命毒师！",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 你好他好大家好",
+   "source": "VRCT 社区分享 · 你好他好大家好",
    "note": "这是一个简单绝命毒师的打法 容错率高胜率时候新手找老手一起游玩",
    "must": [
     {
@@ -9539,7 +9539,7 @@ const ECLIPTICA_DATA = {
    "archetype": "常规光法",
    "title": "常规光法",
    "patch": "v0.5 demo",
-   "source": "VRCT 社区共享市场 · 小仨",
+   "source": "VRCT 社区分享 · 小仨",
    "note": "常规光法公式化加点，成型难度较低，适合日常使用",
    "must": [
     {

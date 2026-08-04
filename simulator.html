@@ -409,10 +409,10 @@ function renderBuildModal() {
     </div>`;
   let listHtml;
   if (bmArchExpanded) {
-    // 展开：标准流派 → 自定义 → 社区 Build
-    listHtml = bs.map(opt).join('') +
-      (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义（本浏览器保存）—</div>` + cs.map(opt).join('') : '') +
-      (vbs.length ? `<div class="tip" style="margin:6px 0">— 🌐 社区 Build（VRCT 共享市场）—</div>` + vbs.map(opt).join('') : '');
+    // 展开：标准流派 → 自定义 → 社区分享
+      listHtml = bs.map(opt).join('') +
+        (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义（本浏览器保存）—</div>` + cs.map(opt).join('') : '') +
+        (vbs.length ? `<div class="tip" style="margin:6px 0">— 🌐 社区分享（Ecliptica 中文支部·VRCT）—</div>` + vbs.map(opt).join('') : '');
   } else if (curB) {
     // 收起：只显示已选流派按钮（点击可再展开）
     listHtml = opt(curB);
@@ -420,7 +420,7 @@ function renderBuildModal() {
     bmArchExpanded = true;
     listHtml = bs.map(opt).join('') +
       (cs.length ? `<div class="tip" style="margin:6px 0">— 自定义 —</div>` + cs.map(opt).join('') : '') +
-      (vbs.length ? `<div class="tip" style="margin:6px 0">— 🌐 社区 Build —</div>` + vbs.map(opt).join('') : '');
+      (vbs.length ? `<div class="tip" style="margin:6px 0">— 🌐 社区分享（Ecliptica 中文支部·VRCT）—</div>` + vbs.map(opt).join('') : '');
   }
   box.innerHTML = listHtml;
   document.querySelectorAll('#buildModalList .build-opt').forEach(el => {
