@@ -88,14 +88,15 @@ const SKILLS = allSkills();
 function esc(t){return (t||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function render() {
-  const shop = shopSel.value, rar = rarFilter.value, cls = clsSel.value, kw = document.getElementById('kw').value.trim().toLowerCase();
+  const shop = shopSel.value, rar = rarFilter.value, cls = clsSel.value;
+  const kw = document.getElementById('kw').value.replace(/\s+/g, '').toLowerCase();
   let rows = SKILLS.filter(s => {
     if (shop !== 'all' && s.shopId !== shop) return false;
     if (rar !== 'all' && s.rarity !== rar) return false;
     if (cls === 'common') { if (s.classId) return false; }
     else if (cls !== 'all' && s.classId !== cls) return false;
     if (kw) {
-      const hay = (s.zh + ' ' + s.en + ' ' + s.jp + ' ' + s.descZh + ' ' + (s.notes||'')).toLowerCase();
+      const hay = (s.zh + ' ' + s.en + ' ' + s.jp + ' ' + s.descZh + ' ' + (s.notes||'')).replace(/\s+/g, '').toLowerCase();
       if (!hay.includes(kw)) return false;
     }
     return true;
@@ -146,7 +147,6 @@ function affChip(a, val) {
 }
 let bossKw = '', bossOpen = null;
 function renderBosses() {
-  const bs = (D.bosses||[]).filter(b => !bossKw || (b.name + ' ' + (b.desc||'') + ' ' + (b.zh_mech||'') + ' ' + (b.zh_tips||'')).toLowerCase().includes(bossKw));
   const panel = document.getElementById('bossesPanel');
   // 骨架（提示+搜索框）只创建一次——输入框节点保持稳定，避免失焦
   if (!panel.querySelector('#bossKw')) {
@@ -154,11 +154,11 @@ function renderBosses() {
       <div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" id="bossKw" class="search-box" placeholder="🔍 搜索 Boss（名称/称号/机制/攻略）…" style="flex:1;margin-bottom:0;min-width:0"></div>
       <div id="bossList"></div>`;
     const kw = document.getElementById('bossKw');
-    kw.value = bossKw;
-    bindSearchInput(kw, () => { bossKw = kw.value.trim().toLowerCase(); renderBosses(); });
-  } else {
-    panel.querySelector('#bossKw').value = bossKw;
+    bindSearchInput(kw, () => { bossKw = kw.value; renderBosses(); });
   }
+  // 注意：不回写输入框 value（用户输入原样保留，避免吞空格）
+  const nk = bossKw.replace(/\s+/g, '').toLowerCase();
+  const bs = (D.bosses||[]).filter(b => !nk || (b.name + ' ' + (b.desc||'') + ' ' + (b.zh_mech||'') + ' ' + (b.zh_tips||'')).replace(/\s+/g, '').toLowerCase().includes(nk));
   const grid = `<div class="upg-grid">` + bs.map(b => `
     <div class="upg-card boss-card" data-boss="${b.id}" style="cursor:pointer">
       <div class="upg-head">
@@ -191,7 +191,6 @@ function bossDetail(b) {
 }
 let enemyKw = '';
 function renderEnemies() {
-  const es = (D.enemies||[]).filter(e => !enemyKw || (e.name + ' ' + (e.damage||'') + ' ' + (e.debuffs||[]).join('') + ' ' + (e.mech||[]).join('')).toLowerCase().includes(enemyKw));
   const panel = document.getElementById('enemiesPanel');
   // 骨架（提示+搜索框）只创建一次——输入框节点保持稳定，避免失焦
   if (!panel.querySelector('#enemyKw')) {
@@ -200,11 +199,11 @@ function renderEnemies() {
       <div id="enemyList"></div>
       <div id="enemyBossRel"></div>`;
     const kw = document.getElementById('enemyKw');
-    kw.value = enemyKw;
-    bindSearchInput(kw, () => { enemyKw = kw.value.trim().toLowerCase(); renderEnemies(); });
-  } else {
-    panel.querySelector('#enemyKw').value = enemyKw;
+    bindSearchInput(kw, () => { enemyKw = kw.value; renderEnemies(); });
   }
+  // 注意：不回写输入框 value（用户输入原样保留，避免吞空格）
+  const nk = enemyKw.replace(/\s+/g, '').toLowerCase();
+  const es = (D.enemies||[]).filter(e => !nk || (e.name + ' ' + (e.damage||'') + ' ' + (e.debuffs||[]).join('') + ' ' + (e.mech||[]).join('')).replace(/\s+/g, '').toLowerCase().includes(nk));
   const card = e => `
     <div class="upg-card">
       <div class="upg-head">
@@ -217,7 +216,7 @@ function renderEnemies() {
       ${(e.mech||[]).length ? `<div class="upg-meta" style="margin-top:4px">${e.mech.map(m => `<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(m)}</span>`).join('')}</div>` : ''}
       ${e.tips ? `<div class="boss-sec" style="margin-top:6px"><h4>🛡 应对</h4><p>${esc(e.tips)}</p></div>` : ''}
     </div>`;
-  const bossRel = (D.boss_enemies||[]).filter(e => !enemyKw || (e.name + ' ' + (e.boss||'') + ' ' + (e.damage||'')).toLowerCase().includes(enemyKw));
+  const bossRel = (D.boss_enemies||[]).filter(e => !nk || (e.name + ' ' + (e.boss||'') + ' ' + (e.damage||'')).replace(/\s+/g, '').toLowerCase().includes(nk));
   const bossRelHtml = bossRel.length ? `
     <h3 style="margin:16px 0 8px;font-size:15px">☠️ Boss 相关敌人（Boss 战中召唤）</h3>
     <div class="upg-grid">` + bossRel.map(e => `
