@@ -1006,7 +1006,7 @@ function saveSimState() {
   try {
     localStorage.setItem(SIM_STATE_KEY, JSON.stringify({
       cls: currentCls, arch: currentArch,
-      state: state, runeOrder: runeOrder, artifactState: artifactState,
+      state: state, runeOrder: runeOrder, curseOrder: curseOrder, artifactState: artifactState,
       savedAt: Date.now()
     }));
   } catch(e) {}
@@ -1020,8 +1020,10 @@ function loadSimState() {
     if (d.cls && D.classes.some(c => c.id === d.cls)) currentCls = d.cls;
     currentArch = d.arch || null;
     state = d.state || {};
-    runeOrder = (d.runeOrder||[]).filter(rid => D.runes.some(r => r.id === rid)).slice(0, 2);
-    artifactState = {};
+    // const 数组/对象：原地修改（splice/delete），不能重新赋值
+    runeOrder.splice(0, runeOrder.length, ...(d.runeOrder||[]).filter(rid => D.runes.some(r => r.id === rid)).slice(0, 2));
+    curseOrder.splice(0, curseOrder.length, ...(d.curseOrder||[]).filter(cid => D.curses.some(c => c.id === cid)).slice(0, 2));
+    Object.keys(artifactState).forEach(k => delete artifactState[k]);
     Object.assign(artifactState, d.artifactState||{});
     return true;
   } catch(e) { return false; }
